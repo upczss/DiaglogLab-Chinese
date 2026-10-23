@@ -916,7 +916,7 @@ const SceneSetup = forwardRef(
       setSceneSizeInfo(sizeInfo);
 
       const sceneName = scenes[activeSceneIndex].name;
-      if (sceneName.startsWith("New Scene")) {
+      if (sceneName.startsWith("New Scene") || sceneName.startsWith("新场景")) {
         // If it's a new scene, show save dialog
         setSaveMode("save");
         setSaveSceneName("");
@@ -1219,7 +1219,7 @@ const SceneSetup = forwardRef(
                       ? "hover:theme-bg-hover"
                       : "hover:theme-bg-hover"
                   }`}
-                  aria-label="Save as"
+                  aria-label="另存为"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
@@ -1232,7 +1232,7 @@ const SceneSetup = forwardRef(
                       ? "hover:theme-bg-hover"
                       : "hover:theme-bg-hover"
                   }`}
-                  aria-label="Close tab"
+                  aria-label="关闭标签页"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -1343,8 +1343,8 @@ const SceneSetup = forwardRef(
         {showSaveDialog && (
           <div className="absolute top-12 left-0 right-0 theme-bg-primary border theme-border-primary shadow-lg rounded-lg p-6 z-50 max-w-md mx-auto">
             <h2 className="text-xl font-semibold mb-4">
-              {saveMode === "rename" ? "Rename Scene" : 
-               saveMode === "saveAs" ? "Save Scene As..." : "Save Scene"}
+              {saveMode === "rename" ? "重命名场景" :
+               saveMode === "saveAs" ? "场景另存为…" : "保存场景"}
             </h2>
 
             {errorMessage && (
@@ -1358,17 +1358,17 @@ const SceneSetup = forwardRef(
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
-                  Large scene detected ({sceneSizeInfo.sizeInMB}MB)
+                  当前场景较大（{sceneSizeInfo.sizeInMB}MB)
                 </p>
                 <p className="theme-text-warning text-sm mt-1">
-                  This scene will be saved as a file download due to its size. You can reload it later from your downloads folder.
+                  场景较大，将下载为文件保存。之后可通过“加载文件”重新导入。
                 </p>
               </div>
             )}
 
             <div className="mb-4">
               <label htmlFor="sceneName" className="block text-sm font-medium theme-text-primary mb-1">
-                {saveMode === "rename" ? "New Scene Name" : "Scene Name"}
+                {saveMode === "rename" ? "新场景名称" : "场景名称"}
               </label>
               <input
                 type="text"
@@ -1376,7 +1376,7 @@ const SceneSetup = forwardRef(
                 value={saveSceneName}
                 onChange={(e) => setSaveSceneName(e.target.value)}
                 className="w-full p-2 border theme-border-primary rounded theme-focus-ring"
-                placeholder={saveMode === "rename" ? "Enter new name for your scene" : "Enter a name for your scene"}
+                placeholder={saveMode === "rename" ? "请输入新的场景名称" : "请输入场景名称"}
                 autocomplete="off"
               />
             </div>
@@ -1386,14 +1386,14 @@ const SceneSetup = forwardRef(
                 onClick={() => setShowSaveDialog(false)}
                 className="px-4 py-2 theme-bg-secondary theme-text-primary rounded hover:theme-bg-hover"
               >
-                Cancel
+                取消
               </button>
               <button
                 onClick={handleSaveDialogConfirm}
                 className="px-4 py-2 theme-bg-accent theme-text-inverse rounded hover:theme-bg-accent-hover"
                 disabled={!saveSceneName.trim()}
               >
-                {saveMode === "rename" ? "Rename" : "Save"}
+                {saveMode === "rename" ? "重命名" : "保存"}
               </button>
             </div>
           </div>

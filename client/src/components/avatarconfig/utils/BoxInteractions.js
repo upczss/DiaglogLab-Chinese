@@ -69,7 +69,7 @@ export const handleDeleteBox = (
   if (activeSceneIndex === null) return;
 
   // Confirm deletion
-  if (window.confirm("Are you sure you want to delete this box?")) {
+  if (window.confirm("确定删除这个容器吗？")) {
     // Remove any avatar instance
     if (avatarInstancesRef.current[boxId]) {
       avatarInstancesRef.current[boxId].stop();

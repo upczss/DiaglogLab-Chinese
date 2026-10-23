@@ -1,0 +1,30 @@
+.verification-mode {
+  --background: #f4f7fc;
+  --foreground: #1e293b;
+  --card: #fff;
+  --card-foreground: #1e293b;
+  --primary: #2563eb;
+  --primary-foreground: #fff;
+  --muted: #edf2f9;
+  --muted-foreground: #64748b;
+  --secondary: #edf2f9;
+  --secondary-foreground: #334155;
+  --accent: #eaf2ff;
+  --accent-foreground: #1d4ed8;
+  --border: #e2e8f0;
+  --input: #dbe3ef;
+  --ring: #93c5fd;
+  color: var(--foreground);
+  background: linear-gradient(150deg, #f1f6ff, #f8fafc 60%);
+  min-height: calc(100vh - 40px);
+  padding: 20px 16px;
+  color-scheme: light;
+}
+.verification-mode [data-slot="card"] { border-radius: 16px; border-color: #e2e8f0; box-shadow: 0 3px 16px #24416d06; }
+.verification-mode .verification-empty { margin: 6vh auto 0; max-width: 720px; padding: 24px; border: 1px solid #e2e8f0; }
+.verification-mode .verification-container { height: auto; min-height: calc(100vh - 80px); }
+.verification-mode .recharts-default-tooltip { border-radius: 12px; border-color: #e2e8f0 !important; box-shadow: 0 8px 24px #24416d14; }
+@media (max-width: 900px) {
+  .verification-mode { padding: 12px 8px; }
+  .verification-mode .verification-columns > div { grid-column: span 12; padding-left: 0; }
+}

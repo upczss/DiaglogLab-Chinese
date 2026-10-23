@@ -1,3 +1,5 @@
+import { createInterventionConfig } from '../../libs/interventionConfig';
+import { createLineDecoder } from '../../libs/lineDecoder';
 import React, { useState, useRef, useEffect, useMemo, useCallback, WheelEvent } from "react"
 import useEditorStore, {Connection, EditorState, SnippetNode, Scene } from "../inspector/store"
 import "./NodeEditor.css"
@@ -696,7 +698,22 @@ const NodeEditor: React.FC<{
     }
   }
 
+  const applyInterventionConfig = (node: SnippetNode, config: any) => {
+    const panels = ['aiPanelData', 'topicData'].map(key => {
+      try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch { return null; }
+    });
+    const settings = createInterventionConfig(node, useEditorStore.getState().conversationMode, panels);
+    if (settings.issue) {
+      alert(settings.issue);
+      throw new Error(settings.issue);
+    }
+    config.conversationMode = settings.conversationMode;
+    config.derailerCommands = settings.derailerCommands;
+    config.agents = config.agents.map((agent: any) => ({ ...agent, isHuman: settings.humanNames.includes(agent.name) }));
+  };
+
   const generateTextFromNode = async (node: SnippetNode, isPartOfSequence: boolean = false, isLastNode: boolean = false, isFirstNode: boolean = false) => {
+    let conversationCompleted = false;
     handleNodeLoad(node, isPartOfSequence, isFirstNode, true)
     try {
       // Ensure we're using the correct number of turns from the node config
@@ -719,11 +736,8 @@ const NodeEditor: React.FC<{
       // Load party configurations and members from scene boxes
       const speakersByParty: { [key: string]: any[] } = {};
       // Check if the scene has human participants
-      const hasHumanParticipants = node.speakers.some(speaker => speaker.isHuman);
       // Get derailer mode setting - default to true unless explicitly set to false
-      const derailerMode = node.derailerMode !== false;
       
-      console.log(`Scene has human participants: ${hasHumanParticipants}, Derailer mode: ${derailerMode}`);
       
       if (node.attachedScene?.boxes) {
         (node.attachedScene.boxes as SceneBox[]).forEach(box => {
@@ -969,81 +983,19 @@ const NodeEditor: React.FC<{
       }
       console.log("initiating conversation with config: ", config);
 
-      // Check if derailer mode is enabled
-      if (derailerMode && hasHumanParticipants) {
-        console.log("Derailer mode is enabled and human participants are present");
-        
-        // Find human agents in the scene
-        const humanAgents: any[] = [];
-        
-        // Get human participants from localStorage
-        try {
-          const topicDataStr = localStorage.getItem('topicData');
-          if (topicDataStr) {
-            const parsedData = JSON.parse(topicDataStr);
-            if (parsedData.humanParticipants && parsedData.humanParticipants.length) {
-              // Add speakers with names matching human participants
-              node.speakers.forEach(speaker => {
-                if (parsedData.humanParticipants.includes(speaker.name)) {
-                  humanAgents.push(speaker);
-                }
-              });
-            }
-          }
-        } catch (e) {
-          console.error("Error checking for human participants in localStorage:", e);
-        }
-        
-        // Also directly check each avatar element for isHuman flag
-        if (node.attachedScene) {
-          for (const box of node.attachedScene.boxes) {
-            for (const element of box.elements || []) {
-              if (element.elementType === 'avatar' && element.avatarData) {
-                if (element.avatarData.hasOwnProperty('isHuman') && (element.avatarData as any).isHuman) {
-                  const avatarName = element.avatarData.name;
-                  const matchingSpeaker = node.speakers.find(s => s.name === avatarName);
-                  if (matchingSpeaker && !humanAgents.find(a => a.name === avatarName)) {
-                    humanAgents.push(matchingSpeaker);
-                  }
-                }
-              }
-            }
-          }
-        }
-        
-        // Add setAsDerailer commands for human agents to the separate derailerCommands array
-        if (humanAgents.length > 0) {
-          console.log(`Adding derailer commands for ${humanAgents.length} human agents`);
-          
-          humanAgents.forEach(humanAgent => {
-            config.derailerCommands.push({
-              command: 'setAsDerailer',
-              agentName: humanAgent.name,
-              config: {
-                enable: true,
-                mode: "random", // Use random mode (drift/extend)
-                threshold: 0, // 50% chance to derail when not their turn
-                minTurns: 3,    // Minimum 3 turns for impromptu phase
-                maxTurns: 5    // Maximum 6 turns for impromptu phase
-              }
-            });
-            
-            console.log(`Added setAsDerailer command for human agent: ${humanAgent.name}`);
-          });
-        } else {
-          console.log("No human agents found to enable as derailers");
-        }
-      }
+      applyInterventionConfig(node, config);
 
       console.log("Sending config to server:", config);
 
-      // Block start if Gemini key missing
+      // Check the selected provider before starting
       try {
         const statusResp = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.LLM_STATUS}`);
         if (statusResp.ok) {
           const status = await statusResp.json();
-          if (!status.geminiConfigured) {
-            alert('Please set your Gemini API key first.');
+          const selectedProvider = localStorage.getItem('LLM_PROVIDER') || 'gemini';
+          const localKey = localStorage.getItem(`${selectedProvider.toUpperCase()}_API_KEY`);
+          if (!localKey && !status[`${selectedProvider}Configured`]) {
+            alert(`请先设置 ${selectedProvider} API 密钥。`);
             return;
           }
         }
@@ -1052,7 +1004,7 @@ const NodeEditor: React.FC<{
       }
       
       const provider = localStorage.getItem('LLM_PROVIDER') || 'gemini';
-      const key = provider === 'openai' ? localStorage.getItem('OPENAI_API_KEY') : localStorage.getItem('GEMINI_API_KEY');
+      const key = localStorage.getItem(`${provider.toUpperCase()}_API_KEY`);
       const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.START_CONVERSATION}`, {
         method: 'POST',
         headers: {
@@ -1072,6 +1024,7 @@ const NodeEditor: React.FC<{
       if (!reader) throw new Error("Failed to get response reader")
       
       const processStream = async () => {
+        const lineDecoder = createLineDecoder();
         let done = false
         let messageCount = 0;
         let currentTime = 0;
@@ -1084,14 +1037,26 @@ const NodeEditor: React.FC<{
           const { value, done: streamDone } = await reader.read()
           done = streamDone
           
-          if (value) {
-            const chunk = new TextDecoder().decode(value)
+          if (value || done) {
+            const chunk = lineDecoder.decode(value, done)
             const lines = chunk.split('\n').filter(line => line.trim())
             
             for (const line of lines) {
               try {
                 const data = JSON.parse(line)
+                if (data.type === 'completion') conversationCompleted = true;
+                if (data.type === 'review_decision') {
+                  setMessages((prev: any[]) => prev.filter(m => !m.needsApproval));
+                  continue;
+                }
                 if (data.type === 'message') {
+                  if (data.message.needsApproval) {
+                    setMessages((prev: any[]) => [...prev.filter(m => !m.needsApproval), data.message]);
+                    continue;
+                  }
+                  if (data.message.isApproved) {
+                    setMessages((prev: any[]) => prev.filter(m => !m.needsApproval));
+                  }
                   // Check if this is a backchannel message
                   const isBackchannel = data.message.isBackchannel || 
                     (data.message.message && 
@@ -1213,19 +1178,22 @@ const NodeEditor: React.FC<{
       await processStream()
       console.log("Full conversation generation completed");
       // Process next node in the queue if this is part of a sequence
-      playNextNodeInQueue(false, "text");
+      if (conversationCompleted) playNextNodeInQueue(false, "text");
       } catch (error) {
       console.error('Error generating text:', error)
     } finally {
+      if (!conversationCompleted) {
+        setPlayingAllNodes(false);
+        setIsGenerating(false);
+        updatePlayingState(false, null);
+      }
       // Show export dialog after generation completes only if this is not part of a sequence
       // or if it's the last node in the sequence
       if (!isPartOfSequence || isLastNode) {
         setIsGenerating(false)
         updatePlayingState(false, null);
         if (setShowExportDialog) {
-          if (conversationMode !== 'human-control') {
-            setShowExportDialog(true);
-          }
+          setShowExportDialog(conversationCompleted);
         }
       }
     }
@@ -1238,6 +1206,7 @@ const NodeEditor: React.FC<{
 
   // Update the playSceneAudio function to show export dialog after playback ends
   const playSceneAudio = async (node: SnippetNode, isPartOfSequence: boolean = false, isLastNode: boolean = false, isFirstNode: boolean = false) => {
+    let conversationCompleted = false;
     handleNodeLoad(node, isPartOfSequence, isFirstNode);
     // Start the playback timer
     const startTime = Date.now();
@@ -1556,77 +1525,7 @@ const NodeEditor: React.FC<{
         console.log(`Added ${contentCommands.length} content commands for PDFs in the scene`);
       }
       
-      // Check if derailer mode is enabled
-      const hasHumanParticipants = node.speakers.some(speaker => speaker.isHuman);
-      // Get derailer mode setting - default to true unless explicitly set to false
-      const derailerMode = node.derailerMode !== false;
-      
-      console.log(`Scene has human participants: ${hasHumanParticipants}, Derailer mode: ${derailerMode}`);
-      
-      if (derailerMode && hasHumanParticipants) {
-        console.log("Derailer mode is enabled and human participants are present");
-        
-        // Find human agents in the scene
-        const humanAgents: any[] = [];
-        
-        // Get human participants from localStorage
-        try {
-          const topicDataStr = localStorage.getItem('topicData');
-          if (topicDataStr) {
-            const parsedData = JSON.parse(topicDataStr);
-            if (parsedData.humanParticipants && parsedData.humanParticipants.length) {
-              // Add speakers with names matching human participants
-              node.speakers.forEach(speaker => {
-                if (parsedData.humanParticipants.includes(speaker.name)) {
-                  humanAgents.push(speaker);
-                }
-              });
-            }
-          }
-        } catch (e) {
-          console.error("Error checking for human participants in localStorage:", e);
-        }
-        
-        // Also directly check each avatar element for isHuman flag
-        if (node.attachedScene) {
-          for (const box of node.attachedScene.boxes) {
-            for (const element of box.elements || []) {
-              if (element.elementType === 'avatar' && element.avatarData) {
-                if (element.avatarData.hasOwnProperty('isHuman') && (element.avatarData as any).isHuman) {
-                  const avatarName = element.avatarData.name;
-                  const matchingSpeaker = node.speakers.find(s => s.name === avatarName);
-                  if (matchingSpeaker && !humanAgents.find(a => a.name === avatarName)) {
-                    humanAgents.push(matchingSpeaker);
-                  }
-                }
-              }
-            }
-          }
-        }
-        
-        // Add setAsDerailer commands for human agents to the separate derailerCommands array
-        if (humanAgents.length > 0) {
-          console.log(`Adding derailer commands for ${humanAgents.length} human agents`);
-          
-          humanAgents.forEach(humanAgent => {
-            config.derailerCommands?.push({
-              command: 'setAsDerailer',
-              agentName: humanAgent.name,
-              config: {
-                enable: true,
-                mode: "random", // Use random mode (drift/extend)
-                threshold: 0.5, // 50% chance to derail when not their turn
-                minTurns: 3,    // Minimum 3 turns for impromptu phase
-                maxTurns: 6     // Maximum 6 turns for impromptu phase
-              }
-            });
-            
-            console.log(`Added setAsDerailer command for human agent: ${humanAgent.name}`);
-          });
-        } else {
-          console.log("No human agents found to enable as derailers");
-        }
-      }
+      applyInterventionConfig(node, config);
 
       // Add logging before initiating audio playback
       console.log('Conversation configuration:', {
@@ -1655,6 +1554,7 @@ const NodeEditor: React.FC<{
       if (!reader) throw new Error("Failed to get response reader");
       
       const processStream = async () => {
+        const lineDecoder = createLineDecoder();
         let done = false
         let tempAudioSegments: AudioSegment[] = [];
         let tempTotalDuration = 0;
@@ -1665,15 +1565,27 @@ const NodeEditor: React.FC<{
           const { value, done: streamDone } = await reader.read()
           done = streamDone
           
-          if (value) {
-            const chunk = new TextDecoder().decode(value)
+          if (value || done) {
+            const chunk = lineDecoder.decode(value, done)
             const lines = chunk.split('\n').filter(line => line.trim())
             
             for (const line of lines) {
               try {
                 const data = JSON.parse(line)
+                if (data.type === 'completion') conversationCompleted = true;
+                if (data.type === 'review_decision') {
+                  setMessages((prev: any[]) => prev.filter(m => !m.needsApproval));
+                  continue;
+                }
                 console.log("processStream data: ", data);
                 if (data.type === 'message') {
+                  if (data.message.needsApproval) {
+                    setMessages((prev: any[]) => [...prev.filter(m => !m.needsApproval), data.message]);
+                    continue;
+                  }
+                  if (data.message.isApproved) {
+                    setMessages((prev: any[]) => prev.filter(m => !m.needsApproval));
+                  }
                   // Check if this is a backchannel message
                   const isBackchannel = data.message.isBackchannel || 
                     (data.message.message && 
@@ -1871,7 +1783,7 @@ const NodeEditor: React.FC<{
                 
                 // Show errors in the UI
                 if (data.type === 'error') {
-                  toast.error(`Error: ${data.error}`, {
+                  toast.error(`错误： ${data.error}`, {
                     duration: 3000,
                     position: "bottom-center",
                   });
@@ -2003,10 +1915,15 @@ const NodeEditor: React.FC<{
       await processStream();
       console.log("Full scene audio playback completed");
 
-      playNextNodeInQueue();
+      if (conversationCompleted) playNextNodeInQueue();
     } catch (error: any) {
       console.error('Error playing scene audio:', error);
     } finally {
+      if (!conversationCompleted) {
+        setPlayingAllNodes(false);
+        setIsGenerating(false);
+        updatePlayingState(false, null);
+      }
       // Clear the playback timer
       if (playbackTimerRef.current) {
         window.clearInterval(playbackTimerRef.current);
@@ -2020,9 +1937,7 @@ const NodeEditor: React.FC<{
         setActivePlaybackScene(null);
         setCurrentSpeaker(null);
         if (setShowExportDialog) {
-          if (conversationMode !== 'human-control') {
-            setShowExportDialog(true);
-          }
+          setShowExportDialog(conversationCompleted);
         }
       }
     }
@@ -2660,7 +2575,7 @@ const NodeEditor: React.FC<{
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M4 2L12 8L4 14V2Z" fill="white" />
           </svg>
-          <span>{playingAllNodes || isPlaying || isGenerating ? "Playing..." : "Play All"}</span>
+          <span>{playingAllNodes || isPlaying || isGenerating ? "正在运行…" : "全部运行"}</span>
         </div>
 
         {/* Checkbox as a separate element */}
@@ -2679,7 +2594,7 @@ const NodeEditor: React.FC<{
             }}
             disabled={playingAllNodes || isPlaying || isGenerating}
           />
-          <span className="ml-1 text-xs text-gray-700">Audio</span>
+          <span className="ml-1 text-xs text-gray-700">语音</span>
         </label>
       </div>
 
@@ -2735,14 +2650,14 @@ const NodeEditor: React.FC<{
       {/* Add zoom controls */}
       <div className="zoom-controls">
         <button onClick={() => setScale(s => Math.min(s + 0.1, 3))}>+</button>
-        <button onClick={() => setScale(1)}>Reset</button>
+        <button onClick={() => setScale(1)}>重置视图</button>
         <button onClick={() => setScale(s => Math.max(s - 0.1, 0.1))}>-</button>
       </div>
 
       {(isGenerating || isPlaying) && (
         <div className="generating-overlay">
           <div className="generating-spinner"></div>
-          <div>{isGenerating ? "Generating conversation..." : "Playing scene audio..."}</div>
+          <div>{isGenerating ? "正在生成对话…" : "正在播放场景语音…"}</div>
         </div>
       )}
       
@@ -2754,26 +2669,7 @@ const NodeEditor: React.FC<{
         />
       )}
 
-      {/* Add PreviewPanel with export dialog */}
-      {messages.length > 0 && (
-        <PreviewPanel
-          messages={messages.map(m => ({
-            content: m.message,
-            sender: m.sender,
-            isProactive: false,
-            party: m.party,
-            avatarConfig: m.avatarConfig
-          }))}
-          onClose={() => setMessages([])}
-          audioSegments={audioSegments}
-          currentPlaybackTime={currentPlaybackTime}
-          isPlaying={isPlaying}
-          totalDuration={totalDuration}
-          onSeek={handleSeek}
-          avatarInstancesRef={avatarInstancesRef}
-          showExportDialog={!!setShowExportDialog}
-        />
-      )}
+
     </div>
   )
 }

@@ -68,7 +68,7 @@ export default function Inspector() {
       // Check if the selectedItem has required properties for SnippetInspector
       // This helps prevent undefined errors
       if (!selectedItem.speakers) {
-        return <div className="p-4">Selected item doesn't have required properties</div>;
+        return <div className="p-4">当前所选项目缺少必要信息</div>;
       }
       return <SnippetInspector conversation={selectedItem} currentTopic={currentTopic} />;
     }
@@ -77,7 +77,7 @@ export default function Inspector() {
   return (
     <div className="inspector">
       <div className="preview-header">
-        Inspector Panel
+        属性面板
         <button
           onClick={closeInspector}
           className="absolute p-1.5 theme-text-tertiary hover:theme-text-primary hover:cursor-pointer transition-colors duration-150 right-0"

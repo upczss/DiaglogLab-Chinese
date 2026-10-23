@@ -655,7 +655,7 @@ class ConversationManager {
     );
     console.log(`generateStartingMessageFromAgent: ${message.fullResponse}`);
 
-    return message.fullResponse || `Let's discuss the topic: ${topic}. What are your thoughts?`;
+    return message.fullResponse || `我们来讨论一下“${topic}”。大家有什么看法？`;
   }
 
   async continueConversation(
@@ -680,67 +680,6 @@ class ConversationManager {
 
     participants = (participants && Array.isArray(participants) && participants.length > 0) ? [...participants] : this.agents.map(agent => agent.name);
     
-    // Check for derailer interventions when not in impromptu phase
-    if (!this.impromptuPhaseActive && this.derailingEnabled) {
-      const derailResponse = await this.checkForDerailInterventions(
-        participants,
-        lastSpeaker,
-        this.getLastMessage()
-      );
-
-      if (derailResponse) {
-        console.log(`Derailer intervention detected from ${derailResponse.sender}`);
-        
-        if (this.autoApproveImpromptu) {
-          // First start impromptu phase with derailer as moderator
-          this.startImpromptuPhase(
-            derailResponse.derailerAgent,
-            derailResponse.derailMode,
-            derailResponse.turnCount || 3
-          );
-
-          // Make sure hasDerailerSpokenFirst is true to prevent double speaking
-          this.hasDerailerSpokenFirst = true;
-          console.log(`Ensured hasDerailerSpokenFirst=true for auto-approved impromptu phase`);
-
-          // Then add the derail response message
-          derailResponse.recipient = "All";
-          this.updateConversation(derailResponse);
-          console.log(`Added derail message from ${derailResponse.sender} after starting impromptu phase`);
-          
-          // Update last speaker and increment turn
-          lastSpeaker = derailResponse.sender;
-          this.currentTurn++;
-          console.log(`Set lastSpeaker to ${lastSpeaker} after derail intervention`);
-          
-          // Skip the rest of this iteration and continue with next turn
-          return this.continueConversation(participants, lastSpeaker, "All", removeBackchannel);
-        } else {
-          // For non-auto-approve mode, add message with needsApproval flag
-          derailResponse.recipient = "All";
-          derailResponse.needsApproval = true;
-          this.updateConversation(derailResponse);
-          console.log(`Added derail message from ${derailResponse.sender} waiting for approval`);
-          
-          // Store pending impromptu phase info
-          this.storePendingImpromptuPhase(
-            derailResponse.derailerAgent,
-            derailResponse.derailMode,
-            derailResponse.turnCount || 3,
-            derailResponse
-          );
-          
-          // Set waiting flags and pause conversation until approval
-          this.isWaitingForApproval = true;
-          this.conversationPaused = true;
-          console.log('Setting waiting flags and pausing conversation for impromptu phase approval');
-          
-          // Return immediately without generating next message
-          return;
-        }
-      }
-    }
-    
     // Continue with normal message generation
     while (this.currentTurn < this.maxTurns) {
       // Check at the beginning of each loop if the conversation has been paused
@@ -749,7 +688,69 @@ class ConversationManager {
         console.log('Conversation was paused during processing - halting message generation');
         return;
       }
-      
+
+      // Check for derailer interventions when not in impromptu phase
+      if (!this.impromptuPhaseActive && this.derailingEnabled) {
+        const derailResponse = await this.checkForDerailInterventions(
+          participants,
+          lastSpeaker,
+          this.getLastMessage()
+        );
+
+        if (derailResponse) {
+          console.log(`Derailer intervention detected from ${derailResponse.sender}`);
+        
+          if (this.autoApproveImpromptu) {
+            // First start impromptu phase with derailer as moderator
+            this.startImpromptuPhase(
+              derailResponse.derailerAgent,
+              derailResponse.derailMode,
+              derailResponse.turnCount || 3
+            );
+
+            // Make sure hasDerailerSpokenFirst is true to prevent double speaking
+            this.hasDerailerSpokenFirst = true;
+            console.log(`Ensured hasDerailerSpokenFirst=true for auto-approved impromptu phase`);
+
+            // Then add the derail response message
+            derailResponse.recipient = "All";
+            this.updateConversation(derailResponse);
+            console.log(`Added derail message from ${derailResponse.sender} after starting impromptu phase`);
+          
+            // Update last speaker and increment turn
+            lastSpeaker = derailResponse.sender;
+            this.currentTurn++;
+            console.log(`Set lastSpeaker to ${lastSpeaker} after derail intervention`);
+          
+            // Skip the rest of this iteration and continue with next turn
+            return this.continueConversation(participants, lastSpeaker, "All", removeBackchannel);
+          } else {
+            // For non-auto-approve mode, add message with needsApproval flag
+            derailResponse.recipient = "All";
+            derailResponse.needsApproval = true;
+            this.updateConversation(derailResponse);
+            console.log(`Added derail message from ${derailResponse.sender} waiting for approval`);
+          
+            // Store pending impromptu phase info
+            this.storePendingImpromptuPhase(
+              derailResponse.derailerAgent,
+              derailResponse.derailMode,
+              derailResponse.turnCount || 3,
+              derailResponse
+            );
+          
+            // Set waiting flags and pause conversation until approval
+            this.isWaitingForApproval = true;
+            this.conversationPaused = true;
+            console.log('Setting waiting flags and pausing conversation for impromptu phase approval');
+          
+            // Return immediately without generating next message
+            return;
+          }
+        }
+      }
+    
+
       // Check if we're transitioning from an approved speaker back to the moderator
       if (this.partyMode && this.partyTurnMode === "moderated" && this.handRaisingEnabled && !this.impromptuPhaseActive) {
         const lastSpeakerParty = this.getAgentParty(lastSpeaker);
@@ -843,7 +844,7 @@ class ConversationManager {
                     // Create message from moderator
               const moderatorMessage = {
                 sender: moderatorSpeaker,
-                      message: reply.fullResponse || `Thank you for that input. I'd like to hear from ${randomHand.member} next.`,
+                      message: reply.fullResponse || `谢谢你的分享，接下来请 ${randomHand.member} 发言。`,
                       recipient: randomHand.member, // Important: set the recipient explicitly
                       isHumanInput: false,
                       party: this.moderatorParty
@@ -878,7 +879,7 @@ class ConversationManager {
                     // Create message from moderator
                     const moderatorMessage = {
                 sender: moderatorSpeaker,
-                      message: reply.fullResponse || `Thank you for that contribution. The floor is open for comments.`,
+                      message: reply.fullResponse || `谢谢你的分享，欢迎大家继续发表看法。`,
                       recipient: "All",
                       isHumanInput: false,
                       party: this.moderatorParty
@@ -2070,9 +2071,8 @@ class ConversationManager {
       this.impromptuDerailer = derailerAgent.name;
       this.impromptuDerailMode = derailMode; // Use the potentially updated derail mode
       
-      // Reset the current turn count to ensure we don't end prematurely
-      // This is critical to prevent the conversation from being marked as "done"
-      this.currentTurn = 0;
+      // The accepted candidate consumes one turn; preserve the snippet budget.
+      this.currentTurn++;
       
       // Set this flag to true since the derailer has already spoken with their derailing message
       this.hasDerailerSpokenFirst = true;
@@ -2208,6 +2208,21 @@ class ConversationManager {
     this.pendingImpromptuPhase = null;
     this.isWaitingForApproval = false;
     this.conversationPaused = false;
+    this.onReviewResolved?.({ approved, sender: derailerAgent.name });
+    this._resolveImpromptuDecision?.();
+  }
+
+  waitForImpromptuDecision(signal) {
+    if (!this.isWaitingForApproval || signal?.aborted) return Promise.resolve();
+    return new Promise(resolve => {
+      const finish = () => {
+        signal?.removeEventListener('abort', finish);
+        this._resolveImpromptuDecision = null;
+        resolve();
+      };
+      this._resolveImpromptuDecision = finish;
+      signal?.addEventListener('abort', finish, { once: true });
+    });
   }
 
   storePendingImpromptuPhase(derailerAgent, derailMode, turns, response, messageConfig = {}) {
@@ -2394,7 +2409,7 @@ class ConversationManager {
   async generateReplyMessage(currentAgent, lastMessage, nextRecipient) {
     if (!currentAgent) {
       console.error("generateReplyMessage: currentAgent is undefined");
-      return { fullResponse: "I can't respond right now." };
+      return { fullResponse: "暂时无法生成回复，请稍后重试。" };
     }
     
     if (currentAgent.isHumanProxy) {
@@ -2475,7 +2490,7 @@ class ConversationManager {
       return await currentAgent.reply(lastMessageText, fullContext, recipientName, interruptionInfo);
     } catch (error) {
       console.error(`Error generating reply from ${currentAgent.name}:`, error);
-      return { fullResponse: "I apologize, but I'm having trouble formulating a response." };
+      return { fullResponse: "回复生成失败，请稍后重试。" };
     }
   }
   
@@ -2896,11 +2911,11 @@ class ConversationManager {
       // Generate the transition message first, but don't add it yet
       // Generate a more dynamic transition message that references the impromptu discussion
       const transitionPhrases = [
-        `Now that we've discussed that, let's return to our main conversation.`,
-        `That was an interesting detour. Shall we continue with our original discussion?`,
-        `Thanks for that insight. Let's get back to what we were talking about.`,
-        `That's a good point to consider. Now, returning to our main topic...`,
-        `Having explored that tangent, let's resume our conversation.`
+        `刚才的讨论先到这里，我们回到原来的话题。`,
+        `这个延伸话题很有意思，我们继续原来的讨论吧。`,
+        `谢谢你的新见解，我们回到刚才的话题。`,
+        `这个观点值得考虑。现在回到主要话题。`,
+        `这个延伸话题讨论过了，我们继续原来的对话。`
       ];
       
       // Select a random transition phrase
@@ -2920,9 +2935,9 @@ class ConversationManager {
         
         if (topicKeywords) {
           const topicReferences = [
-            `After our discussion about ${topicKeywords}, let's get back to our main conversation.`,
-            `That was an interesting point about ${topicKeywords}. Now, where were we?`,
-            `Having covered ${topicKeywords}, shall we continue with our original topic?`
+            `关于“${topicKeywords}”的讨论先到这里，我们回到主要话题。`,
+            `刚才关于“${topicKeywords}”的观点很有意思，我们接着之前的内容讨论。`,
+            `“${topicKeywords}”已经讨论过了，我们继续原来的话题吧。`
           ];
           transitionPhrase = topicReferences[Math.floor(Math.random() * topicReferences.length)];
         }
@@ -2937,93 +2952,11 @@ class ConversationManager {
         nextSpeaker: nextSpeaker // Include next speaker in message
       };
       
-      // Check for derailer interventions immediately after phase end
-      let derailInterventionDetected = false;
-      if (this.derailingEnabled && this.nextSpeakerAfterTransition) {
-        console.log('Checking for derailer interventions immediately after impromptu phase');
-        const derailResponse = await this.checkForDerailInterventions(
-          this.currentParticipants || this.agents.map(agent => agent.name),
-          this.nextSpeakerAfterTransition,
-          this.getLastMessage()
-        );
-
-        if (derailResponse) {
-          derailInterventionDetected = true;
-          console.log(`Derailer intervention detected immediately after impromptu phase from ${derailResponse.sender}`);
-          
-          if (this.autoApproveImpromptu || !this.requireImpromptuApproval) {
-            // First add the transition message to maintain conversation flow
-            this.conversation.push(transitionMessage);
-            if (this.onMessageGenerated) {
-              this.onMessageGenerated(transitionMessage);
-            }
-            console.log(`Added transition message from ${transitionSpeaker} before auto-approved derail`);
-            
-            // Start new impromptu phase with derailer as moderator (autonomous mode)
-            this.startImpromptuPhase(
-              derailResponse.derailerAgent,
-              derailResponse.derailMode,
-              derailResponse.turnCount || 3
-            );
-
-            // Make sure hasDerailerSpokenFirst is true to prevent double speaking
-            this.hasDerailerSpokenFirst = true;
-            console.log(`Ensured hasDerailerSpokenFirst=true for auto-approved impromptu phase`);
-
-            // Add the derail response message as a reply to the transition message
-            derailResponse.recipient = "All";
-            derailResponse.needsApproval = false;
-            derailResponse.isApproved = true;
-            derailResponse.replyToMessage = transitionMessage.message; // Set the reply reference
-            this.updateConversation(derailResponse);
-            console.log(`Added approved derail message from ${derailResponse.sender} after transition message`);
-          } else {
-            // For human-control mode, add transition message first
-            this.conversation.push(transitionMessage);
-            if (this.onMessageGenerated) {
-              this.onMessageGenerated(transitionMessage);
-            }
-            console.log(`Added transition message from ${transitionSpeaker} before pending derail approval`);
-            
-            // Then add message with needsApproval flag
-            derailResponse.recipient = "All";
-            derailResponse.needsApproval = true;
-            derailResponse.isApproved = false;
-            derailResponse.replyToMessage = transitionMessage.message; // Set the reply reference
-            this.updateConversation(derailResponse);
-            console.log(`Added derail message from ${derailResponse.sender} waiting for approval`);
-            
-            // Store pending impromptu phase info
-            this.storePendingImpromptuPhase(
-              derailResponse.derailerAgent,
-              derailResponse.derailMode,
-              derailResponse.turnCount || 3,
-              derailResponse
-            );
-            
-            // Set waiting flags and pause conversation until approval
-            this.isWaitingForApproval = true;
-            this.conversationPaused = true;
-            console.log('Setting waiting flags and pausing conversation for impromptu phase approval (human-control mode)');
-          }
-        }
-      }
-      
-      // If no derailer intervention was detected, add the transition message
-      if (!derailInterventionDetected) {
-        this.conversation.push(transitionMessage);
-        if (this.onMessageGenerated) {
-          this.onMessageGenerated(transitionMessage);
-        }
-        console.log(`Added transition message from ${transitionSpeaker} to ${nextSpeaker}`);
-        
-        // Log the speaker sequence for debugging
-        console.log(`Transition sequence: lastSpeaker=${lastSpeaker} -> transitionSpeaker=${transitionSpeaker} -> nextSpeaker=${nextSpeaker}`);
-      }
+      this.conversation.push(transitionMessage);
+      this.onMessageGenerated?.(transitionMessage);
     }
-    
-    console.log(`Impromptu phase ended. Restored settings: partyMode=${this.partyMode}, partyTurnMode=${this.partyTurnMode}, handRaisingEnabled=${this.handRaisingEnabled}, derailingEnabled=${this.derailingEnabled}`);
   }
+
 
   // Add a setter for autoApproveImpromptu that handles pending approvals
   set autoApproveImpromptu(value) {

@@ -1,3 +1,4 @@
+import { createLineDecoder } from '../libs/lineDecoder';
 import { useState, useEffect, useRef } from 'react';
 import './TalkingHead.css';
 import Header from './Header';
@@ -459,9 +460,7 @@ const TalkingHeadComponent = () => {
     if (nodes.length > 0) {
        // Ask user if they want to generate TTS audio
        shouldGenerateTTS = window.confirm(
-        "Do you want to generate TTS audio for this conversation? " +
-        "This will create audio files based on each avatar's voice settings. " +
-        "\n\nClick OK to generate audio, or Cancel to export without audio."
+        "是否为本次对话生成语音？这需要可用的语音合成密钥。\n\n点击“确定”生成语音，点击“取消”继续无音频导出。"
       );
     }
 
@@ -610,25 +609,13 @@ const TalkingHeadComponent = () => {
         throw new Error('Failed to approve impromptu phase');
       }
 
-      // Update local message state immediately
-      const updatedMessage = { 
-        ...message, 
-        needsApproval: false,
-        isApproved: true,
-        content: finalContent,
-        message: finalContent 
-      };
-      setMessages(prevMessages => 
-        prevMessages.map(m => 
-          m === message ? updatedMessage : m
-        )
-      );
+      // The original conversation stream emits the authoritative approved message.
       setPendingImpromptuMessage(null);
       setIsImpromptuPaused(false);
 
       // Handle streaming response
       const reader = response.body.getReader();
-      const decoder = new TextDecoder();
+      const decoder = createLineDecoder();
 
       while (true) {
         const { value, done } = await reader.read();
@@ -713,7 +700,7 @@ const TalkingHeadComponent = () => {
 
       // Handle streaming response from server
       const reader = response.body.getReader();
-      const decoder = new TextDecoder();
+      const decoder = createLineDecoder();
 
       console.log('Processing response from impromptu rejection');
       while (true) {
@@ -826,51 +813,17 @@ const TalkingHeadComponent = () => {
         throw new Error(errorData.error || 'Failed to regenerate impromptu message');
       }
 
-      // Process streaming response
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let done = false;
-
-      while (!done) {
-        const { value, done: doneReading } = await reader.read();
-        done = doneReading;
-
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n').filter(line => line.trim());
-
-        for (const line of lines) {
-          try {
-            const data = JSON.parse(line);
-            
-            if (data.type === 'regenerated_message' && data.message) {
-              console.log('Received regenerated message:', data.message);
-              
-              // Update the pending impromptu message in state
-              setPendingImpromptuMessage(data.message);
-              
-              // Also update the message in the messages array
-              setMessages(prevMessages => 
-                prevMessages.map(m => 
-                  (m.needsApproval && m.isDerailing) ? data.message : m
-                )
-              );
-            } else if (data.type === 'error') {
-              console.error('Error from server:', data.error);
-              // Could show an error notification here
-            }
-          } catch (error) {
-            console.error('Error processing chunk:', error);
-          }
-        }
+      const data = await response.json();
+      if (data.type !== 'regenerated_message' || !data.message) {
+        throw new Error(data.error || 'No regenerated candidate was returned.');
       }
-
-      console.log('Successfully regenerated impromptu message with mode:', mode);
-      return true;
+      setPendingImpromptuMessage(data.message);
+      setMessages(prevMessages => prevMessages.map(message =>
+        message.needsApproval && message.isDerailing ? data.message : message
+      ));
     } catch (error) {
       console.error('Error regenerating impromptu message:', error);
-      return false;
+      throw error;
     }
   };
 
@@ -889,8 +842,7 @@ const TalkingHeadComponent = () => {
       // Look for messages that either:
       // 1. Have isDerailing=true and needsApproval=true (sent directly from server)
       // 2. Have isDerailing=true but not yet marked as needing approval (legacy pattern)
-      if ((lastMessage.isDerailing && lastMessage.needsApproval) || 
-          (lastMessage.isDerailing && !lastMessage.needsApproval && !lastMessage.isApproved && !pendingImpromptuMessage)) {
+      if (conversationMode === 'human-control' && lastMessage.isDerailing && lastMessage.needsApproval) {
         
         console.log('Detected derailing message that needs approval:', lastMessage);
         
@@ -919,7 +871,7 @@ const TalkingHeadComponent = () => {
         setIsImpromptuPaused(false);
       }
     }
-  }, [messages, pendingImpromptuMessage]);
+  }, [messages, pendingImpromptuMessage, conversationMode]);
 
   // Update handleConversationModeChange to use the store
   const handleConversationModeChange = async (newMode) => {
@@ -940,10 +892,6 @@ const TalkingHeadComponent = () => {
         throw new Error('Failed to update conversation mode');
       }
 
-      // If switching to autonomous mode, automatically approve any pending impromptu phases
-      if (newMode === 'autonomous' && messages.some(m => m.needsApproval)) {
-        handleApproveImpromptu(messages.find(m => m.needsApproval));
-      }
     } catch (error) {
       console.error('Error changing conversation mode:', error);
       // Revert to previous mode on error
@@ -965,7 +913,7 @@ const TalkingHeadComponent = () => {
               <div className="mb-4">
                 <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Processing</h3>
+              <h3 className="text-xl font-semibold mb-2">正在处理</h3>
               <p className="text-gray-600">{progressMessage}</p>
             </div>
           </div>
@@ -976,7 +924,7 @@ const TalkingHeadComponent = () => {
             {editAgent && (
               <>
                 <PanelHeader 
-                  title="Avatar Library"
+                  title="角色库"
                   isEditing={editAgent}
                   onToggleEdit={() => handleLibraryToggle(!editAgent)}
                   rightContent={
@@ -991,7 +939,7 @@ const TalkingHeadComponent = () => {
                             const newParticipants = selectedParticipants.slice(0, newCount);
                             handleParticipantsSelected(newParticipants);
                           }}
-                          title="Remove Participant"
+                          title="移除参与者"
                           disabled={selectedParticipants.length <= 2}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3">
@@ -1016,7 +964,7 @@ const TalkingHeadComponent = () => {
                               handleParticipantsSelected(newParticipants);
                             }
                           }}
-                          title="Add Participant"
+                          title="添加参与者"
                           disabled={selectedParticipants.length >= 10}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3">
@@ -1029,19 +977,19 @@ const TalkingHeadComponent = () => {
                       <div className="relative group">
                         <button 
                           className="flex items-center gap-1 px-2 py-0.5 text-xs rounded bg-gray-100 hover:bg-gray-200 text-gray-700"
-                          title="Set Human Participants"
+                          title="设置人类参与者"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                           </svg>
-                          <span>Human</span>
+                          <span>人类</span>
                         </button>
                         
                         {/* Dropdown menu */}
                         <div className="absolute right-0 top-full mt-1 z-50 w-40 bg-white rounded shadow-lg p-2 border border-gray-200 hidden group-hover:block">
                           <div className="text-xs text-gray-600 font-medium mb-1 pb-1 border-b">
-                            Select Human Participants:
+                            选择人类参与者：
                           </div>
                           {selectedParticipants.length > 0 ? (
                             <div className="max-h-48 overflow-y-auto">
@@ -1094,7 +1042,7 @@ const TalkingHeadComponent = () => {
                                     }`}></span>
                                     <span>{name}</span>
                                     {isHuman && (
-                                      <span className="ml-auto text-green-500 text-xs">(Human)</span>
+                                      <span className="ml-auto text-green-500 text-xs">（人类）</span>
                                     )}
                                   </div>
                                 );
@@ -1102,7 +1050,7 @@ const TalkingHeadComponent = () => {
                             </div>
                           ) : (
                             <div className="text-xs text-gray-500 italic py-1">
-                              No participants available
+                              暂无参与者
                             </div>
                           )}
                         </div>
@@ -1124,7 +1072,7 @@ const TalkingHeadComponent = () => {
                   {/* Content Library for drag-and-drop PDF content */}
                   <div className="h-[15%] mb-2">
                     <PanelHeader 
-                      title="Content Library"
+                      title="素材库"
                       isEditing={true}
                       rightContent={
                         <div className="flex items-center space-x-2">
@@ -1144,7 +1092,7 @@ const TalkingHeadComponent = () => {
                               <polyline points="17 8 12 3 7 8"></polyline>
                               <line x1="12" y1="3" x2="12" y2="15"></line>
                             </svg>
-                            Upload
+                            上传
                           </button>
                           <span id="content-file-count" className="text-xs text-gray-500"></span>
                         </div>
@@ -1168,7 +1116,7 @@ const TalkingHeadComponent = () => {
             {previewInitialized && (
               <div>
                 <PanelHeader 
-                  title="Preview Panel"
+                  title="对话预览"
                   isEditing={showPreview}
                   onToggleEdit={() => handlePreviewToggle(!showPreview)}
                 />
@@ -1222,7 +1170,7 @@ const TalkingHeadComponent = () => {
               {showAvatarPanel && (
                 <div>
                   <PanelHeader 
-                    title={showSceneView ? 'Scene Viewer' : 'Scene Panel'}
+                    title={showSceneView ? "场景预览" : "场景面板"}
                     isEditing={editAvatar || showSceneView}
                     onToggleEdit={() => {
                       if (showSceneView) {
@@ -1240,7 +1188,7 @@ const TalkingHeadComponent = () => {
                           setEditAvatar(true);
                         }}
                       >
-                        Edit Scene
+                        编辑场景
                       </button>
                     )}
                   />
@@ -1277,7 +1225,7 @@ const TalkingHeadComponent = () => {
               {showConversationPanel && (
                 <div>
                   <PanelHeader 
-                    title="Conversation Panel"
+                    title="对话流程"
                     isEditing={editConversation}
                     onToggleEdit={() => setEditConversation(!editConversation)}
                     rightContent={
@@ -1289,12 +1237,12 @@ const TalkingHeadComponent = () => {
                               value={currentTopic}
                               onChange={(e) => handleTopicChange(e.target.value)}
                               className="w-[240px] p-1 text-xs bg-gray-100 border border-gray-300 rounded text-gray-700"
-                              placeholder="Enter conversation context..."
+                              placeholder="请输入整场对话的背景与目标…"
                             />
                             <button
                               onClick={() => setEditTopic(false)}
                               className="p-1 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded"
-                              title="Save topic"
+                              title="保存主题"
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3 text-gray-700">
                                 <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
@@ -1311,7 +1259,7 @@ const TalkingHeadComponent = () => {
                             <button
                               onClick={() => setEditTopic(true)}
                               className="p-1 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded"
-                              title="Edit topic"
+                              title="编辑主题"
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3 text-gray-700">
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -1331,7 +1279,7 @@ const TalkingHeadComponent = () => {
                       setShowExportDialog={setShowExportDialog}
                     />
                   ) : (
-                    <div className="awareness-content">[Conversation Awareness Content]</div>
+                    <div className="awareness-content">[对话状态信息]</div>
                   )}
                 </div>
               )}
@@ -1349,7 +1297,7 @@ const TalkingHeadComponent = () => {
             </>
           ) : (
             <div className="p-4 text-center">
-              <p>Unknown mode: {mode}</p>
+              <p>未知模式： {mode}</p>
             </div>
           )}
         </div>

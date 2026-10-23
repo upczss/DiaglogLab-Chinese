@@ -3,7 +3,7 @@
 
 export const avatarTemplates: Record<string, any> = {
   'Alice': {
-    roleDescription: "Senior HCI researcher specializing in human-computer interaction with expertise in user studies and experimental design",
+    roleDescription: "资深人机交互研究者，擅长用户研究与实验设计。",
     personality: "analytical",
     interactionPattern: "supportive",
     isProactive: true,
@@ -11,12 +11,12 @@ export const avatarTemplates: Record<string, any> = {
     fillerWordsFrequency: "low",
     voice: "en-GB-Standard-A",
     customAttributes: {
-      role: "HCI Researcher",
-      experience: "10 years",
-      expertise: "User Studies, Experimental Design",
-      education: "Ph.D. in HCI",
-      researchFocus: "Human-Computer Interaction",
-      publications: "30+ peer-reviewed papers"
+      role: "人机交互研究者",
+      experience: "10 年",
+      expertise: "用户研究、实验设计",
+      education: "人机交互博士",
+      researchFocus: "人机交互",
+      publications: "30 余篇同行评审论文"
     },
     settings: {
       mood: "neutral",
@@ -25,7 +25,7 @@ export const avatarTemplates: Record<string, any> = {
     }
   },
   'Bob': {
-    roleDescription: "HCI researcher focusing on novel interaction techniques and emerging technologies",
+    roleDescription: "人机交互研究者，关注新型交互技术与新兴科技。",
     personality: "enthusiastic",
     interactionPattern: "supportive",
     isProactive: true,
@@ -33,12 +33,12 @@ export const avatarTemplates: Record<string, any> = {
     fillerWordsFrequency: "low",
     voice: "en-GB-Standard-B",
     customAttributes: {
-      role: "HCI Researcher",
-      experience: "8 years",
-      expertise: "Interaction Design, Prototyping",
-      education: "Ph.D. in Computer Science",
-      researchFocus: "Novel Interaction Techniques",
-      publications: "25+ research papers"
+      role: "人机交互研究者",
+      experience: "8 年",
+      expertise: "交互设计、原型制作",
+      education: "计算机科学博士",
+      researchFocus: "新型交互技术",
+      publications: "25 余篇研究论文"
     },
     settings: {
       mood: "happy",
@@ -47,7 +47,7 @@ export const avatarTemplates: Record<string, any> = {
     }
   },
   'Grace': {
-    roleDescription: "Junior student eager to learn about HCI, currently exploring basic concepts and methodologies",
+    roleDescription: "正在学习人机交互的初学者，希望了解基础概念与研究方法。",
     personality: "friendly",
     interactionPattern: "receptive",
     isProactive: false,
@@ -55,12 +55,12 @@ export const avatarTemplates: Record<string, any> = {
     fillerWordsFrequency: "medium",
     voice: "en-US-Standard-C",
     customAttributes: {
-      role: "Junior Student",
-      experience: "1 year",
-      expertise: "Basic HCI concepts",
-      education: "Undergraduate in Computer Science",
-      interests: "User Interface Design, User Research",
-      currentFocus: "Learning HCI fundamentals"
+      role: "初学者",
+      experience: "1 年",
+      expertise: "人机交互基础概念",
+      education: "计算机科学本科生",
+      interests: "用户界面设计、用户研究",
+      currentFocus: "学习人机交互基础"
     },
     settings: {
       mood: "happy",
@@ -69,7 +69,7 @@ export const avatarTemplates: Record<string, any> = {
     }
   },
   'David': {
-    roleDescription: "Junior student with software engineering background, new to HCI concepts",
+    roleDescription: "具有软件工程背景的初学者，正在接触人机交互的基本概念。",
     personality: "analytical",
     interactionPattern: "skeptical",
     isProactive: false,
@@ -77,12 +77,12 @@ export const avatarTemplates: Record<string, any> = {
     fillerWordsFrequency: "low",
     voice: "en-GB-Standard-D",
     customAttributes: {
-      role: "Software Engineer & Junior Student",
-      experience: "3 years in software, 6 months in HCI",
-      expertise: "Software Development, Basic HCI",
-      education: "Undergraduate in Software Engineering",
-      programmingSkills: "Full-stack development",
-      interests: "Technical aspects of HCI"
+      role: "软件工程师兼初学者",
+      experience: "3 年软件开发经验、半年人机交互学习经验",
+      expertise: "软件开发、人机交互基础",
+      education: "软件工程本科生",
+      programmingSkills: "全栈开发",
+      interests: "人机交互中的技术问题"
     },
     settings: {
       mood: "neutral",
@@ -91,7 +91,7 @@ export const avatarTemplates: Record<string, any> = {
     }
   },
   'Henry': {
-    roleDescription: "Industry expert in AR/VR technologies with extensive practical experience",
+    roleDescription: "增强现实与虚拟现实领域的行业专家，拥有丰富的实践经验。",
     personality: "professional",
     interactionPattern: "critical",
     isProactive: true,
@@ -99,12 +99,12 @@ export const avatarTemplates: Record<string, any> = {
     fillerWordsFrequency: "none",
     voice: "en-US-Standard-B",
     customAttributes: {
-      role: "AR/VR Industry Expert",
-      experience: "15 years",
-      expertise: "AR/VR Development, Spatial Computing",
-      education: "M.S. in Computer Science",
-      industryProjects: "Led 20+ AR/VR projects",
-      specialization: "Enterprise AR/VR solutions"
+      role: "增强现实与虚拟现实行业专家",
+      experience: "15 年",
+      expertise: "增强现实与虚拟现实开发、空间计算",
+      education: "计算机科学硕士",
+      industryProjects: "主持过 20 余个增强现实与虚拟现实项目",
+      specialization: "企业级增强现实与虚拟现实解决方案"
     },
     settings: {
       mood: "neutral",
@@ -113,7 +113,7 @@ export const avatarTemplates: Record<string, any> = {
     }
   },
   'Ivy': {
-    roleDescription: "Experienced UX researcher specializing in user behavior analysis and usability studies",
+    roleDescription: "经验丰富的用户体验研究者，擅长用户行为分析与可用性研究。",
     personality: "empathetic",
     interactionPattern: "supportive",
     isProactive: true,
@@ -121,12 +121,12 @@ export const avatarTemplates: Record<string, any> = {
     fillerWordsFrequency: "low",
     voice: "en-GB-Standard-A",
     customAttributes: {
-      role: "UX Researcher",
-      experience: "7 years",
-      expertise: "User Research, Usability Testing",
-      education: "M.S. in HCI",
-      researchMethods: "Qualitative & Quantitative",
-      industryFocus: "Product Design & Evaluation"
+      role: "用户体验研究者",
+      experience: "7 年",
+      expertise: "用户研究、可用性测试",
+      education: "人机交互硕士",
+      researchMethods: "定性与定量研究",
+      industryFocus: "产品设计与评估"
     },
     settings: {
       mood: "happy",

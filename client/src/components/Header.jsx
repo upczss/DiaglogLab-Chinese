@@ -15,7 +15,7 @@ const Header = ({ mode, setMode, onOpenKeys }) => {
   const [savingKey, setSavingKey] = useState(false);
 
   const clearLocalStorage = () => {
-    if (window.confirm('Are you sure you want to clear all storage data? This will remove all saved scenes, verification data, and settings.')) {
+    if (window.confirm('确定清除全部本地数据吗？这将删除已保存的场景、验证记录和设置，且无法撤销。')) {
       localStorage.clear();
       window.location.reload();
     }
@@ -24,6 +24,7 @@ const Header = ({ mode, setMode, onOpenKeys }) => {
   // Identify the provider from the model name
   const getProviderForModel = (modelName) => {
     if (!modelName) return currentProvider;
+    if (modelName.startsWith('deepseek')) return 'deepseek';
     // Check if it's a Gemini model
     if (modelName.includes('gemini') || modelName.includes('flash') || modelName.includes('pro')) {
       return 'gemini';
@@ -113,7 +114,7 @@ const Header = ({ mode, setMode, onOpenKeys }) => {
   // Models for the active provider
   const getProviderModels = () => {
     // Server already scopes models by current provider
-    return Object.values(models || {});
+    return [...new Set(Object.values(models || {}))];
   };
 
   // Close dropdown when clicking outside
@@ -151,7 +152,7 @@ const Header = ({ mode, setMode, onOpenKeys }) => {
       }
     } catch (e) {
       console.error(e);
-      alert('Failed to save API key');
+      alert("保存 API 密钥失败");
     } finally {
       setSavingKey(false);
     }
@@ -162,7 +163,7 @@ const Header = ({ mode, setMode, onOpenKeys }) => {
       <div className="flex h-full px-5 relative">
         {/* Left section */}
         <div className="flex items-center gap-3">
-          <span className="text-base font-bold text-gray-900">DialogLab</span>
+          <span className="text-base font-bold text-gray-900 whitespace-nowrap">DialogLab—Chinese</span>
           <span className="text-gray-400">|</span>
           <span className="text-sm text-gray-500">v1.0.0</span>
         </div>
@@ -183,7 +184,7 @@ const Header = ({ mode, setMode, onOpenKeys }) => {
               <path d="M2 2l7.586 7.586" />
               <circle cx="11" cy="11" r="2" />
             </svg>
-            <span>Authoring</span>
+            <span>对话编排</span>
           </button>
           {/* <button
             className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
@@ -212,7 +213,7 @@ const Header = ({ mode, setMode, onOpenKeys }) => {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-green-600">
               <path d="M20 6L9 17l-5-5"></path>
             </svg>
-            <span>Verification</span>
+            <span>对话验证</span>
           </button>
         </div>
 
@@ -225,18 +226,18 @@ const Header = ({ mode, setMode, onOpenKeys }) => {
           <button 
             className="px-4 py-1.5 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
             onClick={clearLocalStorage}
-            title="Clear all local storage data"
+            title="清除浏览器中保存的全部数据"
           >
-            Clear Storage
+            清除本地数据
           </button>
 
           {/* API Key toggle */}
           <button
             className="px-3 py-1.5 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
             onClick={() => (onOpenKeys ? onOpenKeys() : setShowKeys(!showKeys))}
-            title="Set API keys"
+            title="设置 API 密钥"
           >
-            Keys
+            密钥设置
           </button>
           
           {/* Model selection dropdown */}
@@ -249,7 +250,7 @@ const Header = ({ mode, setMode, onOpenKeys }) => {
                 }
                 setShowModelDropdown(!showModelDropdown);
               }}
-              title="Select LLM Model"
+              title="选择对话模型"
             >
               <span className="flex items-center gap-2">
                 <span className={`w-3 h-3 rounded-full ${currentProvider === 'gemini' ? 'bg-blue-500' : 'bg-green-500'}`}></span>
@@ -261,7 +262,7 @@ const Header = ({ mode, setMode, onOpenKeys }) => {
             {showModelDropdown && (
               <div className="absolute top-full right-0 w-[250px] bg-white border border-gray-200 rounded-md shadow-lg z-[1000] mt-1 overflow-hidden">
                 <div className="px-3 py-2 text-xs text-gray-500 bg-gray-50 border-b border-gray-200 font-medium">
-                  {currentProvider === 'gemini' ? 'Gemini Models' : 'OpenAI Models'}
+                  {{ gemini: "Gemini 模型", openai: "OpenAI 模型", deepseek: "DeepSeek 模型" }[currentProvider]}
                 </div>
                 {providerModels.map((model) => (
                   <div 
@@ -289,10 +290,10 @@ const Header = ({ mode, setMode, onOpenKeys }) => {
       {/* Keys panel */}
       {!onOpenKeys && showKeys && (
         <div className="absolute top-10 right-5 w-[360px] bg-white border border-gray-200 rounded-md shadow-lg z-[1000] p-3">
-          <div className="text-sm font-medium text-gray-700 mb-2">Provider API Keys</div>
+          <div className="text-sm font-medium text-gray-700 mb-2">模型服务密钥</div>
           <div className="space-y-3">
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Gemini API Key</label>
+              <label className="block text-xs text-gray-500 mb-1">Gemini API 密钥</label>
               <div className="flex gap-2">
                 <input
                   type="password"
@@ -306,7 +307,7 @@ const Header = ({ mode, setMode, onOpenKeys }) => {
                   disabled={savingKey || !geminiKey}
                   onClick={() => saveApiKey('gemini', geminiKey)}
                 >
-                  {savingKey ? 'Saving...' : 'Save'}
+                  {savingKey ? "正在保存…" : "保存"}
                 </button>
               </div>
             </div>

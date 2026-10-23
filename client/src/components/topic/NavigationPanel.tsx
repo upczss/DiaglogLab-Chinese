@@ -403,7 +403,7 @@ const NavigationPanel: React.FC<NavigationPanelProps> = ({
             <path d="M12 10v6"/>
             <path d="m9 13 3-3 3 3"/>
           </svg>
-          <span>Library</span>
+          <span>素材与角色库</span>
         </button>
         {previewInitialized && (
           <button 
@@ -421,7 +421,7 @@ const NavigationPanel: React.FC<NavigationPanelProps> = ({
               <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
               <circle cx="12" cy="12" r="3"/>
             </svg>
-            <span>Preview</span>
+            <span>对话预览</span>
           </button>
         )}
       </div>

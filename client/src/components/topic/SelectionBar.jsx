@@ -1,3 +1,4 @@
+import { authoringLabel } from '../../libs/authoringChinese';
 import React, {useState, useEffect, useRef, useCallback} from 'react';
 import useEditorStore from '../inspector/store';
 import { generateModelThumbnailCache } from '../avatarconfig/utils/modelThumbnailGenerator';
@@ -387,7 +388,7 @@ const SelectionBar = ({
                     <span className={`text-sm font-medium ${isImported ? 'text-gray-500' : 'text-gray-900'} truncate`}>{name}</span>
                     {isHuman && (
                       <span className="ml-2 text-xs font-medium text-green-500 bg-green-50 px-1.5 py-0.5 rounded">
-                        Human
+                        人类
                       </span>
                     )}
                   </div>
@@ -395,7 +396,7 @@ const SelectionBar = ({
                 <div className="flex items-center text-xs text-gray-500 space-x-2">
                   <span className="truncate">{avatarConfig.voice}</span>
                   <span>•</span>
-                  <span>{avatarConfig.settings.mood}</span>
+                  <span>{authoringLabel(avatarConfig.settings.mood)}</span>
                 </div>
               </div>
             </div>

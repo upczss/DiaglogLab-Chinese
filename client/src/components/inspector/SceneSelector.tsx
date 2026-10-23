@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { 
   Select, 
   SelectContent, 
@@ -39,7 +39,7 @@ const SceneSelector: React.FC<SceneSelectorProps> = ({ snippetNode, onSceneChang
   const { scenes, activeSceneId, setActiveSceneId, updateNode, updateSelectedItem, updateSnippetNode } = useEditorStore() as EditorState;
   const [description, setDescription] = useState<string>("");
   const [isGeneratingDescription, setIsGeneratingDescription] = useState<boolean>(false);
-  const [isEditingDescription, setIsEditingDescription] = useState<boolean>(false);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const [isExpanded, setIsExpanded] = useState<boolean>(true);
   
   // When the scene changes, update the description
@@ -52,7 +52,7 @@ const SceneSelector: React.FC<SceneSelectorProps> = ({ snippetNode, onSceneChang
     } else {
       setDescription("");
     }
-  }, [snippetNode.attachedScene?.id]);
+  }, [snippetNode.id, snippetNode.attachedScene?.id]);
   
   const handleSceneChange = (sceneId: string | null) => {
     if (sceneId === null || sceneId === "none") {
@@ -136,7 +136,7 @@ const SceneSelector: React.FC<SceneSelectorProps> = ({ snippetNode, onSceneChang
         
         // Update the node with the generated description
         if (snippetNode.id) {
-          updateNode(snippetNode.id, { description: newDescription });
+          persistDescription(newDescription);
           
           // Only call the callback without automatically generating a prompt
           if (onDescriptionGenerated) {
@@ -167,19 +167,22 @@ const SceneSelector: React.FC<SceneSelectorProps> = ({ snippetNode, onSceneChang
     }
   };
   
-  // Save the description when edited
-  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setDescription(e.target.value);
-  };
-  
-  // Update the node when the description is saved
-  const handleDescriptionSave = () => {
-    if (snippetNode.id) {
-      updateNode(snippetNode.id, { description });
+  const persistDescription = (value: string) => {
+    if (!snippetNode.id) return;
+    const state = useEditorStore.getState();
+    const node = state.nodes.find(node => node.id === snippetNode.id);
+    updateSnippetNode(snippetNode.id, { description: value });
+    if (node && state.selectedItem?.id === snippetNode.id) {
+      updateSelectedItem({ ...node, description: value } as any);
     }
-    setIsEditingDescription(false);
   };
-  
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setDescription(value);
+    persistDescription(value);
+  };
+
   // Check if the attached scene is currently active in the scene panel
   const isSceneActive = snippetNode.attachedScene && snippetNode.attachedScene.id === activeSceneId;
   
@@ -205,12 +208,12 @@ const SceneSelector: React.FC<SceneSelectorProps> = ({ snippetNode, onSceneChang
             <ChevronRight className="w-4 h-4 theme-text-tertiary" />
           )}
           <div className="flex items-center gap-2">
-            <h3 className="text-xs font-medium theme-text-primary">Scene</h3>
+            <h3 className="text-xs font-medium theme-text-primary">场景</h3>
             {snippetNode.attachedScene && (
               <>
                 <span className="theme-text-tertiary text-xs">•</span>
                 <span className="text-xs theme-text-accent font-medium">
-                  {snippetNode.attachedScene.name || "Unknown"}
+                  {snippetNode.attachedScene.name || "未知"}
                 </span>
               </>
             )}
@@ -224,13 +227,14 @@ const SceneSelector: React.FC<SceneSelectorProps> = ({ snippetNode, onSceneChang
           {snippetNode.attachedScene && (
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-medium theme-text-primary">Description</label>
+                <label className="text-xs font-medium theme-text-primary">说明</label>
                 <div className="flex items-center gap-1">
                   <Button 
                     size="sm" 
                     variant="ghost" 
                     className="h-6 w-6 p-0 theme-text-tertiary hover:theme-text-accent hover:theme-bg-accent-light rounded-full transition-colors"
-                    onClick={() => setIsEditingDescription(!isEditingDescription)}
+                    onClick={() => descriptionRef.current?.focus()}
+                    title="编辑场景说明"
                     disabled={isGeneratingDescription}
                   >
                     <Pencil size={12} />
@@ -242,18 +246,19 @@ const SceneSelector: React.FC<SceneSelectorProps> = ({ snippetNode, onSceneChang
                     onClick={generateDescription}
                     disabled={isGeneratingDescription}
                   >
-                    {isGeneratingDescription ? "Generating..." : "Regenerate"}
+                    {isGeneratingDescription ? "正在生成…" : "重新生成"}
                   </Button>
                 </div>
               </div>
               <div className="relative">
                 <Textarea
+                  ref={descriptionRef}
+                  aria-label="场景说明"
                   value={description}
-                  placeholder="Scene description will appear here..."
+                  placeholder="可直接输入场景说明，也可点击“重新生成”…"
                   onChange={handleDescriptionChange}
-                  onBlur={handleDescriptionSave}
                   className="w-full p-1.5 theme-bg-input theme-border theme-text-primary resize-y min-h-[60px] text-xs"
-                  readOnly={!isEditingDescription}
+                  disabled={isGeneratingDescription}
                   rows={3}
                 />
                 {isGeneratingDescription && (

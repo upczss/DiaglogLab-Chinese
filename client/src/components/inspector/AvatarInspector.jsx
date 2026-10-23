@@ -1,16 +1,17 @@
+import { authoringLabel, authoringAttributeLabel } from '../../libs/authoringChinese';
 import React, { useState, useEffect, useCallback } from 'react';
 import useEditorStore from './store';
 import { avatarTemplates } from '../topic/avatarTemplates';
 
 const voiceMapByGender = {
   male: [
-    { value: 'en-US-Standard-B', label: 'American Voice (M)' },
-    { value: 'en-GB-Standard-B', label: 'British Voice (M)' },
-    { value: 'en-GB-Standard-D', label: 'British Voice (M2)' }
+    { value: 'en-US-Standard-B', label: "美式英语男声" },
+    { value: 'en-GB-Standard-B', label: "英式英语男声" },
+    { value: 'en-GB-Standard-D', label: "英式英语男声 2" }
   ],
   female: [
-    { value: 'en-US-Standard-C', label: 'American Voice (F)' },
-    { value: 'en-GB-Standard-A', label: 'British Voice (F)' }
+    { value: 'en-US-Standard-C', label: "美式英语女声" },
+    { value: 'en-GB-Standard-A', label: "英式英语女声" }
   ]
 };
 
@@ -63,8 +64,8 @@ function AvatarInspector({ avatar }) {
     return (
       <div className="p-0 overflow-y-auto max-h-[calc(100vh-6rem)] theme-bg-secondary theme-text-primary">
         <div className="p-3">
-          <h3 className="text-sm font-medium theme-text-primary">Avatar Properties</h3>
-          <p className="text-xs theme-text-tertiary mt-2">No avatar configuration available</p>
+          <h3 className="text-sm font-medium theme-text-primary">角色属性</h3>
+          <p className="text-xs theme-text-tertiary mt-2">暂无角色配置</p>
         </div>
       </div>
     );
@@ -781,13 +782,13 @@ function AvatarInspector({ avatar }) {
       {/* Header */}
       <div className="sticky top-0 theme-bg-secondary theme-border-b theme-border p-2 shadow-sm z-10">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-sm font-medium theme-text-primary">Avatar: {avatar.avatarConfig.name}</h2>
+          <h2 className="text-sm font-medium theme-text-primary">角色： {avatar.avatarConfig.name}</h2>
           <div className="text-xs theme-text-success">
             <span className="inline-flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                 <path d="M20 6L9 17l-5-5"></path>
               </svg>
-              Real-time updates
+              实时更新
             </span>
           </div>
         </div>
@@ -803,21 +804,21 @@ function AvatarInspector({ avatar }) {
               className={`px-2 py-1 border-b-2 text-xs font-medium ${activeTab === 'basic' ? 'theme-border-accent theme-text-accent' : 'border-transparent theme-text-tertiary hover:theme-text-secondary hover:theme-border-hover'}`}
               onClick={() => setActiveTab('basic')}
             >
-              Basic Settings
+              基本设置
             </button>
             <button
               type="button"
               className={`px-2 py-1 border-b-2 text-xs font-medium ${activeTab === 'conversation' ? 'theme-border-accent theme-text-accent' : 'border-transparent theme-text-tertiary hover:theme-text-secondary hover:theme-border-hover'}`}
               onClick={() => setActiveTab('conversation')}
             >
-              Conversation
+              对话
             </button>
             <button
               type="button"
               className={`px-2 py-1 border-b-2 text-xs font-medium ${activeTab === 'appearance' ? 'theme-border-accent theme-text-accent' : 'border-transparent theme-text-tertiary hover:theme-text-secondary hover:theme-border-hover'}`}
               onClick={() => setActiveTab('appearance')}
             >
-              Avatar Settings
+              角色展示
             </button>
           </nav>
         </div>
@@ -828,14 +829,14 @@ function AvatarInspector({ avatar }) {
           {activeTab === 'basic' && (
             <div className="theme-bg-tertiary rounded-md theme-border theme-border overflow-hidden">
               <div className="theme-bg-secondary px-3 py-1.5 theme-border-b theme-border">
-                <h3 className="text-xs font-medium theme-text-secondary">Primary Configuration</h3>
+                <h3 className="text-xs font-medium theme-text-secondary">主要配置</h3>
               </div>
               <div className="p-3 space-y-3">
                  {/* Personality Selection */}
                  <div className="space-y-1">
                   <label className="block text-xs font-medium theme-text-tertiary">
-                    Personality
-                    <TooltipIcon text="The avatar's general demeanor and personality type" />
+                    性格
+                    <TooltipIcon text="角色的整体气质与性格类型" />
                   </label>
                   <select 
                     className="w-full p-1.5 theme-bg-input theme-border theme-text-primary text-xs rounded"
@@ -844,7 +845,7 @@ function AvatarInspector({ avatar }) {
                   >
                     {personalityOptions.map(option => (
                       <option key={option} value={option}>
-                        {option.charAt(0).toUpperCase() + option.slice(1)}
+                        {authoringLabel(option)}
                       </option>
                     ))}
                   </select>
@@ -853,23 +854,23 @@ function AvatarInspector({ avatar }) {
                 {/* Role Description */}
                 <div className="space-y-1">
                   <label className="block text-xs font-medium theme-text-tertiary">
-                    Role Description
-                    <TooltipIcon text="Describe this avatar's role, personality, or background" />
+                    角色说明
+                    <TooltipIcon text="描述角色的职责、性格或背景" />
                   </label>
                   <textarea 
                     className="w-full p-1.5 theme-bg-input theme-border theme-text-primary text-xs rounded"
                     value={selectedItem.avatarConfig?.roleDescription || ""}
                     onChange={handleRoleDescriptionChange}
                     rows={2}
-                    placeholder="Describe the avatar's role..."
+                    placeholder="请输入角色的职责与背景…"
                   />
                 </div>
 
                 {/* Custom Attributes Section */}
                 <div className="space-y-1">
                   <label className="block text-xs font-medium theme-text-tertiary">
-                    Custom Attributes
-                    <TooltipIcon text="Additional attributes that define this character (age, profession, etc.)" />
+                    自定义属性
+                    <TooltipIcon text="补充角色信息，例如年龄、职业或专业领域" />
                   </label>
                   
                   {/* List of current attributes */}
@@ -879,7 +880,7 @@ function AvatarInspector({ avatar }) {
                         {Object.entries(customAttributes).map(([key, value], index) => (
                           <li key={`attr-${index}`} className="flex items-center justify-between py-1 px-2 theme-bg-tertiary rounded theme-border theme-border-light">
                             <div className="flex items-center">
-                              <span className="text-xs font-medium theme-text-primary">{key}:</span>
+                              <span className="text-xs font-medium theme-text-primary">{authoringAttributeLabel(key)}：</span>
                               <span className="text-xs ml-1 theme-text-secondary">{value}</span>
                             </div>
                             <button
@@ -895,30 +896,30 @@ function AvatarInspector({ avatar }) {
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-xs theme-text-tertiary italic text-center py-2">No custom attributes defined</p>
+                      <p className="text-xs theme-text-tertiary italic text-center py-2">暂无自定义属性</p>
                     )}
                   </div>
                   
                   {/* Form to add new attributes with "+" button */}
                   <div className="theme-bg-accent-secondary p-2 rounded-md border theme-border-accent">
-                    <h4 className="text-xs font-medium theme-text-accent mb-2">Add New Attribute</h4>
+                    <h4 className="text-xs font-medium theme-text-accent mb-2">添加属性</h4>
                     
                     <div className="grid grid-cols-2 gap-2 mb-2">
                       <div>
-                        <label className="block text-xs font-medium theme-text-tertiary mb-1">Name</label>
+                        <label className="block text-xs font-medium theme-text-tertiary mb-1">名称</label>
                         <input 
                           type="text"
-                          placeholder="e.g. age, expertise"
+                          placeholder="例如：年龄、专业领域"
                           className="w-full p-1.5 theme-bg-input theme-border theme-text-primary text-xs rounded"
                           value={attributeKey}
                           onChange={(e) => setAttributeKey(e.target.value)}
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium theme-text-tertiary mb-1">Value</label>
+                        <label className="block text-xs font-medium theme-text-tertiary mb-1">属性值</label>
                         <input 
                           type="text"
-                          placeholder="e.g. 35, medicine"
+                          placeholder="例如：35、医学"
                           className="w-full p-1.5 theme-bg-input theme-border theme-text-primary text-xs rounded"
                           value={attributeValue}
                           onChange={(e) => setAttributeValue(e.target.value)}
@@ -934,7 +935,7 @@ function AvatarInspector({ avatar }) {
                         <line x1="12" y1="5" x2="12" y2="19"></line>
                         <line x1="5" y1="12" x2="19" y2="12"></line>
                       </svg>
-                      Add Attribute
+                      添加属性
                     </button>
                   
                   </div>
@@ -949,17 +950,17 @@ function AvatarInspector({ avatar }) {
           {activeTab === 'conversation' && (
             <div className="theme-bg-tertiary rounded-md theme-border theme-border overflow-hidden">
               <div className="theme-bg-secondary px-3 py-1.5 theme-border-b theme-border">
-                <h3 className="text-xs font-medium theme-text-secondary">Conversation Behavior</h3>
+                <h3 className="text-xs font-medium theme-text-secondary">对话行为</h3>
               </div>
               <div className="p-3 space-y-3">
                 {/* Interaction Pattern */}
                 <div className="p-2 theme-bg-accent-secondary rounded border theme-border-accent">
-                  <h4 className="text-xs font-medium text-black mb-2">Communication Style</h4>
+                  <h4 className="text-xs font-medium text-black mb-2">交流风格</h4>
                   
                   <div className="space-y-1">
                     <label className="block text-xs font-medium text-black">
-                      Interaction Pattern
-                      <TooltipIcon text="How the avatar responds to others in conversation" />
+                      互动风格
+                      <TooltipIcon text="角色回应其他参与者时采用的交流风格" />
                     </label>
                     <select 
                       className="w-full p-1.5 theme-bg-input theme-border theme-text-primary text-xs rounded"
@@ -968,7 +969,7 @@ function AvatarInspector({ avatar }) {
                     >
                       {interactionPatternOptions.map(option => (
                         <option key={option} value={option}>
-                          {option.charAt(0).toUpperCase() + option.slice(1)}
+                          {authoringLabel(option)}
                         </option>
                       ))}
                     </select>
@@ -977,7 +978,7 @@ function AvatarInspector({ avatar }) {
 
                 {/* Proactive Settings */}
                               <div className="p-2 bg-sky-900/30 rounded border border-sky-800/30">
-                <h4 className="text-xs font-medium text-black-300 mb-2">Proactive Behavior</h4>
+                <h4 className="text-xs font-medium text-black-300 mb-2">主动发言</h4>
                   
                   <div className="flex items-center">
                     <input 
@@ -988,16 +989,16 @@ function AvatarInspector({ avatar }) {
                       onChange={handleProactiveToggle}
                     />
                     <label htmlFor="isProactive" className="ml-2 block text-xs font-medium text-black">
-                      Enable Proactive Responses
-                      <TooltipIcon text="When enabled, the avatar may jump into conversations without being directly addressed" />
+                      启用主动回应
+                      <TooltipIcon text="启用后，即使未被直接提问，角色也可以主动回应" />
                     </label>
                   </div>
                   
                   {selectedItem.avatarConfig?.isProactive && (
                     <div className="mt-3 ml-5 space-y-1">
                       <label className="block text-xs font-medium text-black">
-                        Proactive Threshold: {selectedItem.avatarConfig?.proactiveThreshold || 0.3}
-                        <TooltipIcon text="Higher values mean more frequent proactive responses" />
+                        主动回应概率： {selectedItem.avatarConfig?.proactiveThreshold || 0.3}
+                        <TooltipIcon text="数值越高，主动回应越频繁" />
                       </label>
                       <input 
                         type="range"
@@ -1008,19 +1009,19 @@ function AvatarInspector({ avatar }) {
                         value={selectedItem.avatarConfig?.proactiveThreshold || 0.3}
                         onChange={handleProactiveThresholdChange}
                       />
-                      <p className="text-xs text-black mt-1">Higher values mean more frequent proactive responses</p>
+                      <p className="text-xs text-black mt-1">数值越高，主动回应越频繁</p>
                     </div>
                   )}
                 </div>
 
                 {/* Filler Words Frequency */}
                 <div className="p-2 bg-cyan-900/30 rounded border border-cyan-800/30">
-                  <h4 className="text-xs font-medium text-black-300 mb-2">Speech Pattern</h4>
+                  <h4 className="text-xs font-medium text-black-300 mb-2">语言习惯</h4>
                   
                   <div className="space-y-1">
                     <label className="block text-xs font-medium text-black">
-                      Filler Words Frequency
-                      <TooltipIcon text="How often the avatar uses filler words like 'um', 'uh', etc." />
+                      语气词频率
+                      <TooltipIcon text="角色使用“嗯”“呃”等语气词的频率" />
                     </label>
                     <select 
                       className="w-full p-1.5 theme-bg-input theme-border theme-text-primary text-xs rounded"
@@ -1029,7 +1030,7 @@ function AvatarInspector({ avatar }) {
                     >
                       {fillerWordsFrequencyOptions.map(option => (
                         <option key={option} value={option}>
-                          {option.charAt(0).toUpperCase() + option.slice(1)}
+                          {authoringLabel(option)}
                         </option>
                       ))}
                     </select>
@@ -1043,93 +1044,93 @@ function AvatarInspector({ avatar }) {
           {activeTab === 'appearance' && (
             <div className="theme-bg-tertiary rounded-md theme-border theme-border overflow-hidden">
               <div className="theme-bg-secondary px-3 py-1.5 theme-border-b theme-border">
-                <h3 className="text-xs font-medium theme-text-secondary">Avatar Settings</h3>
+                <h3 className="text-xs font-medium theme-text-secondary">角色展示</h3>
               </div>
               <div className="p-3 space-y-3">
                 {/* Voice Settings */}
                 <div className="p-2 bg-sky-900/30 rounded border border-sky-800/30">
-                  <h4 className="text-xs font-medium text-black-300 mb-2">Voice Settings</h4>
+                  <h4 className="text-xs font-medium text-black-300 mb-2">声音设置</h4>
                   
         {/* Voice selection */}
         <div className="space-y-1">
           <label className="block text-xs font-medium text-black">
-            Voice
-            <TooltipIcon text="The avatar's speaking voice" />
+            声音
+            <TooltipIcon text="角色发言使用的声音" />
           </label>
           <select 
             className="w-full p-1.5 theme-bg-input theme-border theme-text-primary text-xs rounded"
             value={selectedItem.avatarConfig?.voice || getDefaultVoiceByGender(avatarGender)}
             onChange={handleVoiceChange}
           >
-            <option value="en-GB-Standard-A">British Voice (F)</option>
-            <option value="en-GB-Standard-B">British Voice (M)</option>
-            <option value="en-GB-Standard-D">British Voice (M2)</option>
-            <option value="en-US-Standard-B">American Voice (M)</option>
-            <option value="en-US-Standard-C">American Voice (F)</option>
+            <option value="en-GB-Standard-A">英式英语女声</option>
+            <option value="en-GB-Standard-B">英式英语男声</option>
+            <option value="en-GB-Standard-D">英式英语男声 2</option>
+            <option value="en-US-Standard-B">美式英语男声</option>
+            <option value="en-US-Standard-C">美式英语女声</option>
           </select>
           <div className="mt-2">
             <button 
               onClick={() => handleTestVoice(selectedItem.avatarConfig?.voice || getDefaultVoiceByGender(avatarGender))}
               className="px-2 py-1 theme-bg-accent theme-text-inverse text-xs rounded-sm hover:theme-bg-accent-hover transition-colors ml-2"
             >
-              Test Voice
+              试听
             </button>
-            <span className="text-xs text-black ml-2 italic">Changes apply immediately</span>
+            <span className="text-xs text-black ml-2 italic">修改立即生效</span>
           </div>
           </div>
         </div>
 
                 {/* Mood Settings */}
                 <div className="p-2 bg-slate-900/30 rounded border border-slate-800/30">
-                  <h4 className="text-xs font-medium text-black-300 mb-2">Emotional State</h4>
+                  <h4 className="text-xs font-medium text-black-300 mb-2">情绪状态</h4>
         
         {/* Mood selection */}
                   <div className="space-y-1">
                     <label className="block text-xs font-medium text-black">
-                      Mood
-                      <TooltipIcon text="The avatar's emotional state" />
+                      情绪
+                      <TooltipIcon text="角色当前的情绪状态" />
                     </label>
           <select 
             className="w-full p-1.5 theme-bg-input theme-border theme-text-primary text-xs rounded"
             value={selectedItem.avatarConfig?.settings?.mood || "neutral"}
             onChange={handleMoodChange}
           >
-            <option value="neutral">Neutral</option>
-            <option value="happy">Happy</option>
-            <option value="sad">Sad</option>
-            <option value="angry">Angry</option>
-            <option value="surprised">Surprised</option>
+            <option value="neutral">中立</option>
+            <option value="happy">开心</option>
+            <option value="sad">难过</option>
+            <option value="angry">生气</option>
+            <option value="surprised">惊讶</option>
           </select>
-                    <p className="text-xs text-black mt-1 italic">Changes apply immediately</p>
+                    <p className="text-xs text-black mt-1 italic">修改立即生效</p>
                   </div>
         </div>
         
         {/* Camera View */}
         <div className="p-2 bg-blue-900/30 rounded border border-blue-800/30">
-        <h4 className="text-xs font-medium text-black-300 mb-2">Camera Settings</h4>
+        <h4 className="text-xs font-medium text-black-300 mb-2">镜头设置</h4>
                   
         <div className="space-y-1">
             <label className="block text-xs font-medium text-black">
-              Camera View
-              <TooltipIcon text="How much of the avatar is visible" />
+              取景范围
+              <TooltipIcon text="画面中展示角色的范围" />
             </label>
           <select 
             className="w-full p-1.5 theme-bg-input theme-border theme-text-primary text-xs rounded"
             value={selectedItem.avatarConfig?.settings?.cameraView || "upper"}
             onChange={handleCameraViewChange}
           >
-            <option value="upper">Upper Body</option>
-            <option value="head">Face Only</option>
-            <option value="full">Full Body</option>
+            <option value="upper">上半身</option>
+            <option value="head">仅面部</option>
+            <option value="full">全身</option>
           </select>
-                    <p className="text-xs text-black mt-1 italic">Changes apply immediately</p>
+                    <p className="text-xs text-black mt-1 italic">修改立即生效</p>
         </div>
         
         {/* Camera Distance */}
                   <div className="space-y-1 mt-3">
                     <label className="block text-xs font-medium text-black">
-                      Camera Distance: {selectedItem.avatarConfig?.settings?.cameraDistance || 0.1}
-                      <TooltipIcon text="How close the camera is to the avatar" />
+                      镜头距离： {selectedItem.avatarConfig?.settings?.cameraDistance || 0.1}
+                      <TooltipIcon text="镜头与角色之间的距离" />
           </label>
           <input 
             type="range" 
@@ -1140,19 +1141,19 @@ function AvatarInspector({ avatar }) {
                       value={selectedItem.avatarConfig?.settings?.cameraDistance || 0.1}
             onChange={handleCameraDistanceChange}
           />
-                    <p className="text-xs text-black mt-1 italic">Changes apply immediately</p>
+                    <p className="text-xs text-black mt-1 italic">修改立即生效</p>
                   </div>
         </div>
                 
                 {/* Model Information */}
                 <div className="p-2 theme-bg-secondary rounded border theme-border-secondary">
-                  <h4 className="text-xs font-medium theme-text-tertiary mb-2">Model Information</h4>
+                  <h4 className="text-xs font-medium theme-text-tertiary mb-2">模型信息</h4>
         
         {/* URL Display (read-only) */}
                   <div className="space-y-1">
                     <label className="block text-xs font-medium theme-text-tertiary">
-                      Model URL
-                      <TooltipIcon text="URL to the avatar's 3D model - read only" />
+                      角色模型地址
+                      <TooltipIcon text="角色三维模型的地址，仅供查看" />
                     </label>
           <input 
             type="text"
@@ -1177,7 +1178,7 @@ function AvatarInspector({ avatar }) {
                 <polyline points="17 21 17 13 7 13 7 21"></polyline>
                 <polyline points="7 3 7 8 15 8"></polyline>
               </svg>
-          Save & Apply To All Instances
+          保存并应用到此角色的所有实例
         </button>
             <p className="text-xs theme-text-tertiary text-center">
          

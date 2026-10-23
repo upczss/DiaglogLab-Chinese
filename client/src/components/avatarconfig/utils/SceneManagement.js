@@ -99,7 +99,7 @@ export const loadSavedScenesList = (setSavedScenes, setErrorMessage) => {
   } catch (error) {
     console.error("Error loading saved scenes:", error);
     setErrorMessage(
-      "Failed to load saved scenes. Local storage might be corrupted.",
+      "加载已保存场景失败，浏览器中的数据可能已损坏。",
     );
   }
 };
@@ -160,7 +160,7 @@ export const createNewScene = (scenes, setScenes, setActiveSceneIndex, setNewSce
   console.log('Creating new scene');
   
   const newSceneCounter = scenes.length + 1;
-  const newSceneName = `New Scene ${newSceneCounter}`;
+  const newSceneName = `新场景 ${newSceneCounter}`;
   
   // Create the scene object with needed properties
   const newScene = {
@@ -275,7 +275,7 @@ export const loadSavedScene = async (
     }
     
     if (!sceneStr) {
-      setErrorMessage(`Scene with ID "${sceneId}" not found in local storage.`);
+      setErrorMessage(`场景编号“${sceneId}”不存在于本地数据中。`);
       return;
     }
 
@@ -298,7 +298,7 @@ export const loadSavedScene = async (
       } catch (fileError) {
         console.error("Error loading scene from file URL:", fileError);
         setErrorMessage(
-          "Failed to load scene from file reference. The file may no longer be available. Please load the scene from your downloaded file."
+          "无法加载场景引用，文件可能已失效。请重新导入已下载的场景文件。"
         );
         
         // Show file input to allow user to load the scene from their downloaded file
@@ -442,7 +442,7 @@ export const loadSavedScene = async (
   } catch (error) {
     console.error("Error loading saved scene:", error);
     setErrorMessage(
-      `Failed to load scene "${sceneId}". The saved data might be corrupted.`,
+      `无法加载场景“${sceneId}”，保存的数据可能已损坏。`,
     );
     return null;
   }
@@ -462,7 +462,7 @@ export const deleteScene = (sceneId, e, savedScenes, setSavedScenes, setErrorMes
   // Confirm deletion with better message
   if (
     window.confirm(
-      `Are you sure you want to delete ${sceneName}? This cannot be undone.`,
+      `确定删除场景“${sceneName}”吗？此操作无法撤销。`,
     )
   ) {
     try {
@@ -538,7 +538,7 @@ export const deleteScene = (sceneId, e, savedScenes, setSavedScenes, setErrorMes
     } catch (error) {
       console.error("Error deleting scene:", error);
       setErrorMessage(
-        `Failed to delete scene "${sceneId}". Please try again.`,
+        `无法删除场景“${sceneId}”，请重试。`,
       );
     }
   }
@@ -588,7 +588,7 @@ export const handleSave = (
     const name = customName || saveSceneName.trim();
 
     if (!name) {
-      setErrorMessage("Please enter a scene name");
+      setErrorMessage("请输入场景名称");
       return;
     }
 
@@ -793,7 +793,7 @@ export const handleSave = (
       
       // Show a more helpful error message
       setErrorMessage(
-        `Scene is too large (${sizeInfo.sizeInMB}MB) for browser storage. Please reduce the scene size or clear browser data.`
+        `场景过大（${sizeInfo.sizeInMB}MB），超出浏览器存储容量。请减小场景或清理浏览器数据。`
       );
     }
 
@@ -818,7 +818,7 @@ export const handleSave = (
     console.log(`Scene saved ${savedToLocalStorage ? 'to localStorage' : 'failed - scene too large'}`);
   } catch (error) {
     console.error("Error saving scene:", error);
-    setErrorMessage("Failed to save scene. Please try again.");
+    setErrorMessage("保存场景失败，请重试。");
   }
 };
 

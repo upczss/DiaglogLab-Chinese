@@ -1,3 +1,4 @@
+import { chineseDialoguePrompt } from './dialogueLanguage.js';
 import dotenv from "dotenv";
 import * as llmProvider from "./providers/llmProvider.js";
 dotenv.config();
@@ -109,6 +110,7 @@ class Agent {
             ${!isStartingMessage ? `Last message: ${message}` : ""}
            
             Respond briefly (1-2 sentences), building on previous points without repeating them.
+            始终使用简体中文发言，角色姓名和必要的专有名称可以保留原文。
             Keep your response conversational and natural. After you speak, ${nextSpeaker} will respond.`;
 
             // console.log(prompt);
@@ -117,7 +119,7 @@ class Agent {
 
       try {
         const fullResponse = this.postProcessResponse(
-          await llmProvider.generateText(prompt, { ...options, ...(this.llmOptions || {}) })
+          await llmProvider.generateText(chineseDialoguePrompt(prompt), { ...options, ...(this.llmOptions || {}) })
         );
   
         if (interruptionInfo.interrupt) {
@@ -140,19 +142,20 @@ class Agent {
       } catch (error) {
         console.error("Error in reply method:", error);
         return {
-          fullResponse: "Sorry, I couldn't generate a response.",
+          fullResponse: "回复生成失败，请稍后重试。",
           interrupted: false,
         };
       }
     }
   
     postProcessResponse(response) {
-      // Remove any instances of the agent's name from the beginning of the response
-      response = response.replace(/^[^:]+:\s*/, "");
-  
-      // Limit the response to three sentences
-      const sentences = response.match(/[^.!?]+[.!?]+/g) || [];
-      return sentences.slice(0, 3).join(" ").trim();
+      // Strip only this speaker's label; colons within the reply are content.
+      const escapedName = this.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      response = response.replace(new RegExp(`^\\s*${escapedName}\\s*[:：]\\s*`), "").trim();
+
+      // Keep Chinese punctuation and unfinished final sentences as well as English.
+      const sentences = response.match(/[^.!?。！？]+(?:[.!?。！？]+["'”’」』]*|$)/gu) || [];
+      return sentences.slice(0, 3).join("").trim();
     }
   
     setProactiveSettings(settings) {
@@ -197,7 +200,7 @@ class Agent {
   
       try {
         const fullResponse = this.postProcessResponse(
-          await llmProvider.generateText(proactivePrompt, options)
+          await llmProvider.generateText(chineseDialoguePrompt(proactivePrompt), { ...options, ...(this.llmOptions || {}) })
         );
         
         return {
@@ -207,7 +210,7 @@ class Agent {
       } catch (error) {
         console.error("Error generating proactive response:", error);
         return {
-          fullResponse: "Actually, I have something to add about that...",
+          fullResponse: "我想补充一个看法。",
           isProactive: true
         };
       }
@@ -277,7 +280,7 @@ class Agent {
 
       try {
         const fullResponse = this.postProcessResponse(
-          await llmProvider.generateText(derailPrompt, options)
+          await llmProvider.generateText(chineseDialoguePrompt(derailPrompt), { ...options, ...(this.llmOptions || {}) })
         );
         
         return {
@@ -289,8 +292,8 @@ class Agent {
         console.error("Error generating derail response:", error);
         return {
           fullResponse: this.derailMode === "drift" 
-            ? "That reminds me of something completely different..."
-            : "I have an unusual perspective on that...",
+            ? "介入内容生成失败，请点击“重新生成”重试。"
+            : "介入内容生成失败，请点击“重新生成”重试。",
           isDerailing: true,
           derailMode: this.derailMode
         };

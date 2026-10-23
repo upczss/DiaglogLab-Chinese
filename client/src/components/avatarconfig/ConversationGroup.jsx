@@ -1,3 +1,4 @@
+import { authoringPartyLabel } from '../../libs/authoringChinese';
 import React, { useState, useEffect, useRef } from 'react';
 import { Trash, ChevronDown, ChevronUp, GripHorizontal, Users, File, Plus, FilePlus, Maximize2, Minimize2, Pencil } from 'lucide-react';
 // import PartyInspector from '../inspector/PartyInspector';
@@ -579,13 +580,13 @@ const ConversationGroup = ({
                 e.stopPropagation();
                 // Delete element
                 if (typeof onDeleteElement === 'function') {
-                  if (window.confirm("Are you sure you want to delete this element?")) {
+                  if (window.confirm("确定删除这个元素吗？")) {
                     onDeleteElement(box.id, element.id);
                   }
                 }
               }}
-              title="Delete Element"
-              aria-label="Delete this element"
+              title="删除元素"
+              aria-label="删除此元素"
             >
               <Trash className="w-3.5 h-3.5" />
             </button>
@@ -620,7 +621,7 @@ const ConversationGroup = ({
                 <div className="absolute inset-0 flex items-center justify-center theme-bg-primary theme-bg-opacity-75">
                   <div className="flex flex-col items-center">
                     <div className="w-8 h-8 border-4 theme-border-accent border-t-transparent rounded-full animate-spin"></div>
-                    <span className="mt-2 text-sm theme-text-secondary">Loading avatar...</span>
+                    <span className="mt-2 text-sm theme-text-secondary">正在加载角色…</span>
                   </div>
                 </div>
               )}
@@ -635,9 +636,9 @@ const ConversationGroup = ({
                   boxShadow: '0 1px 2px rgba(0,0,0,0.3)'
                 }}
               >
-                {element.avatarData.name || 'Unnamed Avatar'}
+                {element.avatarData.name || "未命名角色"}
                 {element.avatarData.isHuman && (
-                  <span className="ml-1 theme-text-success font-medium">(Human)</span>
+                  <span className="ml-1 theme-text-success font-medium">（人类）</span>
                 )}
               </div>
             </div>
@@ -645,7 +646,7 @@ const ConversationGroup = ({
             // Empty avatar placeholder
             <div className="flex flex-col items-center justify-center h-full border-2 border-dashed theme-border-secondary mx-1 my-1 rounded-md hover:theme-border-accent hover:theme-bg-secondary transition-colors overflow-hidden">
               <Plus className="w-5 h-5 theme-text-secondary group-hover/element:theme-text-accent transition-colors" />
-              <span className="text-xs theme-text-tertiary mt-1 text-center px-2 truncate w-full">Drag avatar and content here</span>
+              <span className="text-xs theme-text-tertiary mt-1 text-center px-2 truncate w-full">将角色或素材拖到这里</span>
             </div>
           )
         ) : (
@@ -656,7 +657,7 @@ const ConversationGroup = ({
                 {element.contentType?.startsWith('image/') && (
                   <img 
                     src={element.contentUrl} 
-                    alt="Content" 
+                    alt="素材"
                     className="w-full h-full object-contain"
                   />
                 )}
@@ -664,7 +665,7 @@ const ConversationGroup = ({
                 {element.contentType === 'application/pdf' && (
                   <div className="w-full h-full flex flex-col">
                     <div className="text-xs theme-text-secondary p-1 theme-bg-tertiary border-b flex justify-between items-center">
-                      <span className="truncate">{element.contentName || "PDF Document"}</span>
+                      <span className="truncate">{element.contentName || "PDF 文档"}</span>
                       <a 
                         href={element.contentUrl} 
                         target="_blank" 
@@ -672,13 +673,13 @@ const ConversationGroup = ({
                         className="theme-text-accent hover:underline ml-2"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        Open
+                        打开
                       </a>
                     </div>
                     <iframe 
                       src={`${element.contentUrl}#toolbar=0&navpanes=0`}
                       className="w-full flex-grow border-0" 
-                      title={element.contentName || "PDF Viewer"}
+                      title={element.contentName || "PDF 预览"}
                     />
                   </div>
                 )}
@@ -692,7 +693,7 @@ const ConversationGroup = ({
                   >
                     <div className="flex flex-col items-center justify-center h-full">
                       <File className="w-8 h-8 theme-text-success" />
-                      <span className="text-sm mt-2">{element.contentName || "Excel Document"}</span>
+                      <span className="text-sm mt-2">{element.contentName || "Excel 表格"}</span>
                     </div>
                   </div>
                 )}
@@ -703,7 +704,7 @@ const ConversationGroup = ({
                   <div className="w-full h-full flex flex-col items-center justify-center theme-bg-tertiary">
                     <File className="w-8 h-8 theme-text-accent" />
                     <span className="text-sm mt-2 max-w-full truncate">
-                      {element.contentName || "Word Document"}
+                      {element.contentName || "Word 文档"}
                     </span>
                   </div>
                 )}
@@ -720,7 +721,7 @@ const ConversationGroup = ({
                   <div className="w-full h-full p-0.5 overflow-auto bg-white border border-gray-200 text-xs">
                     <div className="flex flex-col items-center justify-center h-full">
                       <File className="w-8 h-8 theme-text-secondary" />
-                      <span className="text-sm mt-2">{element.contentName || "CSV File"}</span>
+                      <span className="text-sm mt-2">{element.contentName || "CSV 文件"}</span>
                     </div>
                   </div>
                 )}
@@ -732,7 +733,7 @@ const ConversationGroup = ({
                     controls 
                     className="w-full h-full object-contain"
                   >
-                    Your browser does not support the video tag.
+                    当前浏览器不支持视频播放。
                   </video>
                 )}
                 
@@ -744,10 +745,10 @@ const ConversationGroup = ({
                       controls 
                       className="w-full max-w-full"
                     >
-                      Your browser does not support the audio tag.
+                      当前浏览器不支持音频播放。
                     </audio>
                     <span className="text-sm mt-2 max-w-full truncate">
-                      {element.contentName || "Audio File"}
+                      {element.contentName || "音频文件"}
                     </span>
                   </div>
                 )}
@@ -766,7 +767,7 @@ const ConversationGroup = ({
                   <div className="w-full h-full flex flex-col items-center justify-center theme-bg-tertiary">
                     <File className="w-8 h-8 theme-text-secondary" />
                     <span className="text-sm mt-2 max-w-full truncate">
-                      {element.contentName || "Unknown file type"}
+                      {element.contentName || "未知文件类型"}
                     </span>
                     <span className="text-xs theme-text-secondary mt-1">
                       {element.contentType || ""}
@@ -778,7 +779,7 @@ const ConversationGroup = ({
               // Empty content placeholder
               <div className="flex flex-col items-center justify-center h-full border-2 border-dashed theme-border-secondary mx-1 my-1 rounded-md hover:theme-border-success hover:theme-bg-secondary transition-colors overflow-hidden">
                 <FilePlus className="w-5 h-5 theme-text-secondary group-hover/element:theme-text-success transition-colors" />
-                <span className="text-xs theme-text-tertiary mt-1 text-center px-2 truncate w-full">Drag file here</span>
+                <span className="text-xs theme-text-tertiary mt-1 text-center px-2 truncate w-full">将文件拖到这里</span>
               </div>
             )
           )}
@@ -877,7 +878,7 @@ const ConversationGroup = ({
       onMouseDown={(e) => onMouseDown(e, box.id)}
       onClick={() => onSelectBox(box.id)}
       role="region"
-      aria-label={`Conversation box ${box.id}`}
+      aria-label={`对话容器 ${box.id}`}
       tabIndex="0"
       onKeyDown={(e) => {
         // Basic keyboard navigation for accessibility
@@ -907,16 +908,16 @@ const ConversationGroup = ({
                 e.stopPropagation();
                 setShowPartyMenu(!showPartyMenu);
               }}
-              title="Assign to Party"
-              aria-label={box.party ? `Party: ${box.party}` : "Assign to Party"}
+              title="分配到群组"
+              aria-label={box.party ? `群组： ${box.party}` : "分配到群组"}
             >
               <Users className="w-4 h-4" />
               {box.party ? (
                 <span className="ml-1">
-                  {box.party}
+                  {authoringPartyLabel(box.party)}
                 </span>
               ) : (
-                <span className="ml-1">Party</span>
+                <span className="ml-1">群组</span>
               )}
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="6 9 12 15 18 9"></polyline>
@@ -925,7 +926,7 @@ const ConversationGroup = ({
             
             {/* Dynamic tooltip based on whether party is assigned */}
             <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover/party:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap z-50">
-              {box.party ? 'Change Party' : 'Assign Party'}
+              {box.party ? "更换群组" : "分配群组"}
             </div>
             
             {/* Party menu dropdown - positioned with fixed positioning */}
@@ -960,7 +961,7 @@ const ConversationGroup = ({
               >
                 {/* Menu Header */}
                 <div className="px-3 py-2 text-xs font-medium theme-text-tertiary border-b theme-border-primary">
-                  Assign to Party
+                  分配到群组
                 </div>
                 
                 {/* Party List with Proper Ternary Structure */}
@@ -1003,13 +1004,13 @@ const ConversationGroup = ({
                           setShowPartyMenu(false);
                         }}
                       >
-                        {partyName}
+                        {authoringPartyLabel(partyName)}
                       </button>
                     ))}
                   </div>
                 ) : (
                   <div className="px-4 py-2 text-xs theme-text-tertiary italic">
-                    No parties available
+                    暂无群组
                   </div>
                 )}
                 
@@ -1034,7 +1035,7 @@ const ConversationGroup = ({
                       setShowPartyMenu(false);
                     }}
                   >
-                    Remove from party
+                    移出群组
                   </button>
                 )}
               </div>
@@ -1060,7 +1061,7 @@ const ConversationGroup = ({
                     }
                   }}
                   disabled={(box.elements?.length || 0) >= 6}
-                  title="Add element"
+                  title="添加元素"
                 >
                   <ChevronUp className="w-3 h-3" />
                 </button>
@@ -1074,7 +1075,7 @@ const ConversationGroup = ({
                     }
                   }}
                   disabled={(box.elements?.length || 0) <= 1}
-                  title="Remove element"
+                  title="移除元素"
                 >
                   <ChevronDown className="w-3 h-3" />
                 </button>
@@ -1089,8 +1090,8 @@ const ConversationGroup = ({
               className={`p-1 rounded-full hover:theme-bg-error ${
                 selectedBoxId === box.id ? 'theme-text-error' : 'text-transparent group-hover:theme-text-error'
               } transition-colors cursor-pointer`}
-              title="Delete Box"
-              aria-label="Delete this box"
+              title="删除容器"
+              aria-label="删除此容器"
             >
               <Trash className="w-3.5 h-3.5" />
             </button>
@@ -1101,7 +1102,7 @@ const ConversationGroup = ({
       {/* Elements layout - Dynamic based on whether an element is enlarged */}
       <div 
         className="w-full h-[calc(100%-32px)] flex relative box-border overflow-hidden"
-        aria-label={`Contains ${box.elements?.length || 0} elements`}
+        aria-label={`包含 ${box.elements?.length || 0}  个元素`}
         role="group"
       >
         <div 
@@ -1109,7 +1110,7 @@ const ConversationGroup = ({
           className={`flex ${enlargedElementId ? 'flex-row' : 'flex-row'} ${isDragging ? 'select-none' : ''} grow h-full`}
           style={{ touchAction: 'none' }}
           role="region"
-          aria-label="Element container"
+          aria-label="元素容器"
         >
           {/* If an element is enlarged, we'll render all other elements in a column on the left (20% width) */}
           {enlargedElementId ? (
@@ -1274,8 +1275,8 @@ const ConversationGroup = ({
                       e.stopPropagation();
                       handleDividerDrag(index);
                     }}
-                    title="Drag to resize elements"
-                    aria-label="Resize divider between elements"
+                    title="拖动以调整元素大小"
+                    aria-label="拖动分隔线调整元素大小"
                     role="separator"
                   >
                     <div className="h-24 w-1.5 theme-bg-tertiary rounded-full absolute opacity-70 group-hover:opacity-100 transition-opacity"></div>
@@ -1296,8 +1297,8 @@ const ConversationGroup = ({
           <div 
             className="resize-handle absolute w-5 h-[calc(100%-32px)] right-0 top-[32px] cursor-e-resize transition-colors flex items-center justify-center"
             onMouseDown={(e) => onResizeStart(e, box.id, 'e')}
-            title="Resize horizontally"
-            aria-label="Resize box horizontally"
+            title="调整宽度"
+            aria-label="调整容器宽度"
           >
             <div className="w-1 h-12 theme-bg-accent rounded-full opacity-0 group-hover:opacity-60"></div>
           </div>
@@ -1306,8 +1307,8 @@ const ConversationGroup = ({
           <div 
             className="resize-handle absolute h-5 w-full left-0 bottom-0 cursor-s-resize transition-colors flex items-center justify-center"
             onMouseDown={(e) => onResizeStart(e, box.id, 's')}
-            title="Resize vertically"
-            aria-label="Resize box vertically"
+            title="调整高度"
+            aria-label="调整容器高度"
           >
             <div className="h-1 w-12 theme-bg-accent rounded-full opacity-0 group-hover:opacity-60"></div>
           </div>
@@ -1316,8 +1317,8 @@ const ConversationGroup = ({
           <div 
             className="resize-handle absolute w-8 h-8 right-0 bottom-0 cursor-se-resize transition-colors flex items-center justify-center overflow-hidden"
             onMouseDown={(e) => onResizeStart(e, box.id, 'se')}
-            title="Resize diagonally"
-            aria-label="Resize box diagonally"
+            title="调整大小"
+            aria-label="调整容器大小"
           >
             <div className="w-6 h-6 rotate-45 opacity-0 group-hover:opacity-40 theme-bg-accent-secondary theme-bg-opacity-60 flex flex-col justify-center">
               <div className="border-b theme-border-accent mb-0.5 opacity-70"></div>

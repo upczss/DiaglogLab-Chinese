@@ -9,7 +9,7 @@ const ThemeToggle = ({ className = '', buttonClassName = '' }) => {
     <button
       className={`theme-toggle-button ${buttonClassName}`}
       onClick={toggleTheme}
-      title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+      title={theme === 'dark' ? "切换到浅色主题" : "切换到深色主题"}
     >
       {theme === 'dark' ? (
         <FaSun className="theme-toggle-icon" />

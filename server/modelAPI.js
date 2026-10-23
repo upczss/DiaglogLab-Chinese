@@ -78,7 +78,7 @@ export function setupModelRoutes(app) {
 
   /**
    * POST /api/llm-keys - Set API keys for providers
-   * { provider: 'openai'|'gemini', apiKey: '...' }
+   * { provider: 'openai'|'gemini'|'deepseek', apiKey: '...' }
    */
   app.post("/api/llm-keys", (req, res) => {
     try {
@@ -91,6 +91,8 @@ export function setupModelRoutes(app) {
         if (typeof llmProvider.setOpenAIApiKey === 'function') {
           llmProvider.setOpenAIApiKey(apiKey);
         }
+      } else if (provider === 'deepseek') {
+        llmProvider.setDeepSeekApiKey(apiKey);
       } else if (provider === 'gemini') {
         setGeminiApiKey(apiKey);
       } else if (provider === 'tts') {
@@ -117,6 +119,7 @@ export function setupModelRoutes(app) {
       return res.json({
         status: 'success',
         geminiConfigured: isGeminiConfigured(),
+        deepseekConfigured: llmProvider.isDeepSeekConfigured(),
         openaiConfigured: typeof llmProvider.isOpenAIConfigured === 'function' ? llmProvider.isOpenAIConfigured() : false,
         ttsConfigured: isTtsConfigured(),
         currentProvider: typeof llmProvider.getProvider === 'function' ? llmProvider.getProvider() : 'gemini'
@@ -129,13 +132,13 @@ export function setupModelRoutes(app) {
 
   /**
    * POST /api/llm-provider - Set the active LLM provider
-   * { provider: 'openai'|'gemini' }
+   * { provider: 'openai'|'gemini'|'deepseek' }
    */
   app.post("/api/llm-provider", (req, res) => {
     try {
       const { provider } = req.body || {};
-      if (!provider || !['openai', 'gemini'].includes(provider)) {
-        return res.status(400).json({ status: 'error', message: 'provider must be "openai" or "gemini"' });
+      if (!provider || !['openai', 'gemini', 'deepseek'].includes(provider)) {
+        return res.status(400).json({ status: 'error', message: 'provider must be "openai", "gemini", or "deepseek"' });
       }
       if (typeof llmProvider.setProvider === 'function') {
         llmProvider.setProvider(provider);

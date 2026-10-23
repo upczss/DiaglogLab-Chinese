@@ -76,24 +76,24 @@ const ConversationMetricsDashboard: React.FC<ConversationMetricsDashboardProps> 
   
   // Radar chart data
   const radarData: RadarDataEntry[] = [
-    { subject: 'Topic Coherence', ...participants.reduce<Record<string, number>>((acc: Record<string, number>, p: Participant) => {
+    { subject: '话题连贯性', ...participants.reduce<Record<string, number>>((acc: Record<string, number>, p: Participant) => {
       acc[p.name] = normalizeValue(data.metrics.coherenceScore || 0, 0, 1, 0, 10);
       return acc;
     }, {}) },
-    { subject: 'Engagement', ...participants.reduce<Record<string, number>>((acc: Record<string, number>, p: Participant) => {
+    { subject: '参与度', ...participants.reduce<Record<string, number>>((acc: Record<string, number>, p: Participant) => {
       acc[p.name] = normalizeValue(data.metrics.engagementLevel[p.id] || 0, 0, 1, 0, 10);
       return acc;
     }, {}) },
-    { subject: 'Turn Taking', ...participants.reduce<Record<string, number>>((acc: Record<string, number>, p: Participant) => {
+    { subject: '轮次参与', ...participants.reduce<Record<string, number>>((acc: Record<string, number>, p: Participant) => {
       const maxTurns = Math.max(...Object.values(data.metrics.turnTakingFrequency));
       acc[p.name] = normalizeValue(data.metrics.turnTakingFrequency[p.id] || 0, 0, maxTurns, 0, 10);
       return acc;
     }, {}) },
-    { subject: 'Speaking Time', ...participants.reduce<Record<string, number>>((acc: Record<string, number>, p: Participant) => {
+    { subject: '发言时长', ...participants.reduce<Record<string, number>>((acc: Record<string, number>, p: Participant) => {
       acc[p.name] = normalizeValue(data.metrics.participationTime[p.id] || 0, 0, duration * 0.6, 0, 10);
       return acc;
     }, {}) },
-    { subject: 'Sentiment', ...participants.reduce<Record<string, number>>((acc: Record<string, number>, p: Participant) => {
+    { subject: '情绪倾向', ...participants.reduce<Record<string, number>>((acc: Record<string, number>, p: Participant) => {
       acc[p.name] = normalizeValue(data.metrics.sentiment[p.id] || 0, -1, 1, 0, 10);
       return acc;
     }, {}) }
@@ -101,9 +101,9 @@ const ConversationMetricsDashboard: React.FC<ConversationMetricsDashboardProps> 
   
   // Overall metrics - exclude System participant from calculations
   const overallMetrics: OverallMetricEntry[] = [
-    { name: 'Participation Balance', value: data.metrics.speakingBalance },
-    { name: 'Topic Coherence', value: data.metrics.coherenceScore },
-    { name: 'Overall Sentiment', value: data.metrics.overallSentiment }
+    { name: '参与均衡度', value: data.metrics.speakingBalance },
+    { name: '话题连贯性', value: data.metrics.coherenceScore },
+    { name: '整体情绪倾向', value: data.metrics.overallSentiment }
   ];
 
   // Helper function to normalize values to a specific range
@@ -152,7 +152,7 @@ const ConversationMetricsDashboard: React.FC<ConversationMetricsDashboardProps> 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-1">
             {/* Speaking Distribution */}
             <div className="bg-white p-2 rounded-lg border">
-              <h2 className="text-sm font-semibold mb-1">Speaking Time Distribution</h2>
+              <h2 className="text-sm font-semibold mb-1">发言时长分布</h2>
               <ResponsiveContainer width="100%" height={150}>
                 <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                   <Pie
@@ -169,21 +169,21 @@ const ConversationMetricsDashboard: React.FC<ConversationMetricsDashboardProps> 
                       <Cell key={`pie-cell-${entry.name}-${entry.value}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => `${value.toFixed(2)} seconds`} />
+                  <Tooltip formatter={(value: number) => `${value.toFixed(2)} 秒`} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
             
             {/* Engagement Levels */}
             <div className="bg-white p-2 rounded-lg border">
-              <h2 className="text-sm font-semibold mb-1">Engagement Levels</h2>
+              <h2 className="text-sm font-semibold mb-1">参与度</h2>
               <ResponsiveContainer width="100%" height={150}>
                 <BarChart data={engagementData} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                   <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} label={{ value: '%', angle: -90, position: 'insideLeft', style: { fontSize: 8 } }} />
-                  <Tooltip formatter={(value) => [`${Number(value).toFixed(2)}%`, 'Engagement']} />
-                  <Bar dataKey="engagement" name="Engagement Level">
+                  <Tooltip formatter={(value) => [`${Number(value).toFixed(2)}%`, '参与度']} />
+                  <Bar dataKey="engagement" name="参与度">
                     {engagementData.map((entry) => (
                       <Cell key={`bar-cell-${entry.name}-${entry.engagement}`} fill={entry.color} />
                     ))}
@@ -194,12 +194,12 @@ const ConversationMetricsDashboard: React.FC<ConversationMetricsDashboardProps> 
             
             {/* Speaking Timeline */}
             <div className="bg-white p-2 rounded-lg border">
-              <h2 className="text-sm font-semibold mb-1">Cumulative Speaking Time</h2>
+              <h2 className="text-sm font-semibold mb-1">累计发言时长</h2>
               <ResponsiveContainer width="100%" height={150}>
                 <LineChart data={timelineData} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="time" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} label={{ value: 'Sec', angle: -90, position: 'insideLeft', style: { fontSize: 8 } }} />
+                  <YAxis tick={{ fontSize: 12 }} label={{ value: "秒", angle: -90, position: 'insideLeft', style: { fontSize: 8 } }} />
                   <Tooltip formatter={(value, name) => [Number(value).toFixed(2), name]} />
                   {participants.map(participant => (
                     <Line 
@@ -219,7 +219,7 @@ const ConversationMetricsDashboard: React.FC<ConversationMetricsDashboardProps> 
         {/* Right Section - 1/3 width - Larger Participant Comparison */}
         <div>
           <div className="bg-white p-2 rounded-lg border h-full">
-            <h2 className="text-sm font-semibold mb-1">Participant Comparison (0 ~ 10)</h2>
+            <h2 className="text-sm font-semibold mb-1">参与者对比（0～10）</h2>
             <ResponsiveContainer width="100%" height={210}>
               <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
                 <PolarGrid />

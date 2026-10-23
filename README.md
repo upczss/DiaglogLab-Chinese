@@ -1,125 +1,77 @@
-# DialogLab
+# DialogLab—Chinese
 
-<img src="content/dialoglab-fig.png" alt="DialogLab teaser figure" width="100%"/>
+面向中文使用者的 DialogLab 适配版，用于配置多角色场景、编排对话、预览人工介入，以及回放和分析对话。
 
-[Paper](https://dl.acm.org/doi/10.1145/3746059.3747696) | [30s Preview](https://www.youtube.com/watch?v=AdvYhP8A51M) | [Video Figure](https://www.youtube.com/watch?v=U2Ag_Ktobzw) | [Web Demo](https://chatlab.3dvar.com/)
+> 本项目基于 [Erzhen Hu 等作者的 DialogLab](https://github.com/ecruhue/DialogLab) 修改，是社区中文适配版本，并非原作者官方中文版。原项目采用 MIT 许可证，原作者版权声明和许可全文保留在 [LICENSE](LICENSE) 中。
 
-**DialogLab** is an authoring tool for configuring and orchestrating multi-agent conversations with animated 3D avatars. Built with React, Vite, and Express, it enables researchers, designers, and developers to create, visualize, and evaluate complex agent-based dialogue systems.
+## 中文适配内容
 
-## Features
+- 对话编排（Authoring）中的角色、群组、场景、片段配置与提示汉化。
+- 对话验证（Verification）中的记录、时间轴、图表及问答提示汉化。
+- 场景描述、对话提示词、对话生成和分析回答增加中文输出要求。
+- 增加 DeepSeek 接入，并保留原有 OpenAI、Gemini 支持。
+- 改进人工控制模式的候选介入审核、重新生成和继续对话流程。
+- 改进中文流式文本处理，以及密钥弹窗和验证界面的浅色样式。
 
-- **Visual Conversation Design**: Configure multi-agent conversations with an intuitive node-based editor
-- **3D Avatar Integration**: Animate conversations using Ready Player Me avatars with synchronized speech
-- **Multiple LLM Support**: Compatible with OpenAI GPT and Google Gemini models
-- **Scene Management**: Create and manage multiple conversation scenarios
-- **Real-time Preview**: Test and iterate on conversations in real-time
-- **Verification Tools**: Analyze conversation metrics and quality
-- **Experience Mode**: Present finished conversations in a polished viewer
+参与者姓名、模型标识和配置中的内部枚举值保留原格式；已有自定义内容不会自动翻译。
 
-## Prerequisites
+## 安装与启动
 
-- **Node.js** 18+ (Node 23 recommended for build and deploy scripts)
-- **npm** 8+
+需要 Node.js 22 或更高版本、npm 和至少一种受支持模型服务的 API key。详细步骤、Windows 命令、关闭流程和常见问题见 **[安装与运行指南](docs/安装与运行.md)**。
 
-## Repository Structure
+在两个终端中分别运行：
 
-```
-DialogLab/
-├── client/         # React UI (Vite) - Dev server on port 5173
-│   ├── src/        # React components and application logic
-│   └── public/     # Static assets (avatars, libraries)
-└── server/         # Express API server - Listens on port 3010
-    ├── providers/  # LLM provider integrations
-    └── ...         # Core server logic
-```
-
-## Getting Started
-
-### 1. Install Dependencies
-
-```bash
-# Install client dependencies
-cd client
-npm install
-
-# Install server dependencies
-cd ../server
-npm install
-```
-
-### 2. Configure Environment Variables
-
-Create a `.env` file in the `server/` directory with your API keys:
-
-```env
-# Core Configuration
-NODE_ENV=development
-
-# LLM Providers (configure at least one)
-GEMINI_API_KEY=your-gemini-api-key-here
-API_KEY_LLM=your-openai-api-key-here
-
-# Defaults (optional)
-DEFAULT_LLM_PROVIDER=gemini   # or openai
-DEFAULT_OPENAI_MODEL=gpt-4
-DEFAULT_GEMINI_MODEL=gemini-2.0-flash
-
-# Text-to-Speech (optional - for avatar speech synthesis)
-TTS_API_KEY=your-google-tts-api-key-here
-TTS_ENDPOINT=https://eu-texttospeech.googleapis.com/v1beta1/text:synthesize
-```
-
-**Note**: You need at least one LLM provider API key (OpenAI or Gemini) to run conversations.
-
-### 3. Start the Server
-
-```bash
+```powershell
+# 终端一：在仓库根目录执行
 cd server
-node server.js
+npm ci
+Copy-Item .env.example .env  # 仅首次创建；已有 .env 时不要覆盖
+# 在本地编辑 .env，填入自己的密钥
+npm start
 ```
 
-The server will start at `http://localhost:3010`. You should see a message confirming the server is running.
-
-### 4. Start the Client
-
-In a separate terminal:
-
-```bash
+```powershell
+# 终端二：在仓库根目录执行
 cd client
-npm run dev
+npm ci
+npm run dev -- --host localhost --port 5173 --strictPort
 ```
 
-Open your browser and navigate to `http://localhost:5173`.
+打开 <http://localhost:5173>，选择模型服务并按需要配置密钥。首次安装之后，后续启动无需重复安装依赖或复制环境文件。在两个终端中分别按 `Ctrl+C` 停止服务。
 
-## Third-Party Components & Licenses
+## 使用和当前限制
 
-### TalkingHead (MIT License)
-Portions of this project's code are adapted from the open-source project [TalkingHead](https://github.com/met4citizen/TalkingHead), © 2024 Mika Suominen (met4citizen), licensed under the MIT License.
+1. 在「对话编排」创建场景，添加角色，配置群组及对话片段。
+2. 输入中文场景描述或对话要求，先以少量轮次运行验证。
+3. 使用「人工控制」前，标记人类参与者并开启片段介入设置；它审核候选介入，不代表每一轮都需要手动输入。
+4. 对话完成后导出，再到「对话验证」查看记录与分析。
 
-**Files**: `client/public/libs/talkinghead.mjs`
+- **语音目前仍使用 Google TTS**，阿里百炼 TTS 尚未接入。没有 Google key 时可取消「语音」，使用文字对话及无音频导出。
+- 模型调用、语音合成需要各自的服务权限、余额和网络连接；模型标识及可用性以服务商实际提供为准。
+- 验证页的「刷新统计」沿用原项目模拟行为，不会重新计算指标；累计发言曲线为简化展示，不宜当作精确行为测量。
+- 仅针对本机开发使用整理。远程部署需另行配置 API 地址、CORS、认证和密钥管理；不能把当前版本直接作为多人公共服务部署。
 
-### Three.js (MIT License)
-This project uses [Three.js](https://threejs.org/) and its example modules, © 2010–present Three.js authors, licensed under the MIT License.
+## 文档
 
-**License**: [Three.js LICENSE](https://github.com/mrdoob/three.js/blob/dev/LICENSE)
+- [安装与运行指南](docs/安装与运行.md)
+- [安全与密钥说明](SECURITY.md)
+- [第三方组件与素材说明](THIRD_PARTY_NOTICES.md)
 
-### Ready Player Me Avatars (Custom License)
-Example avatar files (`client/public/assets/*.glb`) were created using [Ready Player Me](https://readyplayer.me/) and are subject to [Ready Player Me's Terms of Use](https://readyplayer.me/terms-of-use).
+## 致谢、许可与论文引用
 
-**Note**: These assets are provided for demonstration purposes only and are **not covered** by this project's open-source license. For production use, you must obtain your own avatars or comply with Ready Player Me's licensing terms.
+原项目：[ecruhue/DialogLab](https://github.com/ecruhue/DialogLab)；中文适配维护：[upczss](https://github.com/upczss)。
 
-## Citation
+本仓库代码在 [MIT 许可证](LICENSE) 下发布。第三方库、角色模型和示例素材仍适用各自的许可条款，不因本仓库许可证而改变。
 
-If you use DialogLab in your research, please cite our UIST 2025 paper:
+原论文：[DialogLab（UIST 2025）](https://dl.acm.org/doi/10.1145/3746059.3747696)。研究中使用原系统或其方法时，请引用原论文；本项目不替代原论文署名。
 
 ```bibtex
 @inproceedings{dialoglab2025,
-author = {Hu, Erzhen and Chen, Yanhe and Li, Mingyi and Phadnis, Vrushank and Xu, Pingmei and Qian, Xun and Olwal, Alex and Kim, David and Heo, Seongkook and Du, Ruofei},
-  title     = {DialogLab: Configuring and Orchestrating Multi-Agent Conversations},
+  author = {Hu, Erzhen and Chen, Yanhe and Li, Mingyi and Phadnis, Vrushank and Xu, Pingmei and Qian, Xun and Olwal, Alex and Kim, David and Heo, Seongkook and Du, Ruofei},
+  title = {DialogLab: Configuring and Orchestrating Multi-Agent Conversations},
   booktitle = {Proceedings of the 38th Annual ACM Symposium on User Interface Software and Technology (UIST '25)},
-  year      = {2025},
+  year = {2025},
   publisher = {Association for Computing Machinery},
-  address   = {New York, NY, USA},
-  doi       = {10.1145/3746059.3747696}
+  doi = {10.1145/3746059.3747696}
 }
 ```

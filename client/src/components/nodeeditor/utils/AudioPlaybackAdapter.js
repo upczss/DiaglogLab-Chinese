@@ -314,9 +314,11 @@ export class AudioPlaybackAdapter {
         const statusResp = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.LLM_STATUS}`);
         if (statusResp.ok) {
           const status = await statusResp.json();
-          if (!status.geminiConfigured) {
-            alert('Please set your Gemini API key first.');
-            return Promise.reject(new Error('Gemini API key not configured'));
+          const selectedProvider = localStorage.getItem('LLM_PROVIDER') || 'gemini';
+          const localKey = localStorage.getItem(`${selectedProvider.toUpperCase()}_API_KEY`);
+          if (!localKey && !status[`${selectedProvider}Configured`]) {
+            alert(`请先设置 ${selectedProvider} API 密钥。`);
+            return Promise.reject(new Error(`${selectedProvider} API key not configured`));
           }
         }
       } catch (e) {
@@ -366,7 +368,7 @@ export class AudioPlaybackAdapter {
       
       // Use the same API endpoint as conversation, but with TalkingHead options
       const provider = localStorage.getItem('LLM_PROVIDER') || 'gemini';
-      const key = provider === 'openai' ? localStorage.getItem('OPENAI_API_KEY') : localStorage.getItem('GEMINI_API_KEY');
+      const key = localStorage.getItem(`${provider.toUpperCase()}_API_KEY`);
       return fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.START_CONVERSATION}`, {
         method: 'POST',
         headers: {

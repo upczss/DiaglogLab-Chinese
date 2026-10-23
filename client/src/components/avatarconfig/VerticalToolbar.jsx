@@ -69,7 +69,7 @@ const VerticalToolbar = ({
           onClick={onAddBox}
           variant="add"
           icon={<Plus className="w-4 h-4" />}
-          tooltip="Add Box"
+          tooltip="添加容器"
         />
 
         {/* Background controls */}
@@ -77,7 +77,7 @@ const VerticalToolbar = ({
           onChange={onUploadBackground}
           variant="background"
           icon={<Image className="w-4 h-4" />}
-          tooltip="Add Background"
+          tooltip="添加背景"
           accept="image/*"
         />
 
@@ -87,7 +87,7 @@ const VerticalToolbar = ({
             onClick={onRemoveBackground}
             variant="delete"
             icon={<Trash className="w-4 h-4" />}
-            tooltip="Remove Background"
+            tooltip="移除背景"
           />
         )}
       </div>
@@ -102,7 +102,7 @@ const VerticalToolbar = ({
           onClick={onSave}
           variant="save"
           icon={<Save className="w-4 h-4" />}
-          tooltip="Save Scene"
+          tooltip="保存场景"
         />
 
       </div>

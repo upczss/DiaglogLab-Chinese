@@ -94,7 +94,7 @@ const ConversationPrompt: React.FC<ConversationPromptProps> = ({
     if (isGenerating || !sceneDescription) return;
     
     setIsGenerating(true);
-    setPrompt("Generating conversation prompt...");
+    setPrompt("正在生成对话提示词…");
     
     try {
       const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.GENERATE_CONVERSATION_PROMPT}`, {
@@ -129,8 +129,8 @@ const ConversationPrompt: React.FC<ConversationPromptProps> = ({
       }
     } catch (error) {
       console.error('Error fetching conversation prompt:', error);
-      setPrompt(`Failed to generate a conversation prompt. Please try again.`);
-      setEditedPrompt(`Failed to generate a conversation prompt. Please try again.`);
+      setPrompt(`生成对话提示词失败，请重试。`);
+      setEditedPrompt(`生成对话提示词失败，请重试。`);
     } finally {
       setIsGenerating(false);
     }
@@ -172,7 +172,7 @@ const ConversationPrompt: React.FC<ConversationPromptProps> = ({
             <Textarea
               value={editedPrompt}
               onChange={handlePromptChange}
-              placeholder="Edit conversation prompt..."
+              placeholder="编辑对话提示词…"
               className="w-full p-1.5 theme-bg-input theme-border theme-text-primary resize-y min-h-[80px] text-xs focus:ring-2 focus:ring-amber-400 focus:border-transparent"
               rows={4}
               autoFocus
@@ -185,7 +185,7 @@ const ConversationPrompt: React.FC<ConversationPromptProps> = ({
                 onClick={handleEditCancel}
               >
                 <X size={12} className="mr-1" />
-                Cancel
+                取消
               </Button>
               <Button
                 size="sm"
@@ -194,7 +194,7 @@ const ConversationPrompt: React.FC<ConversationPromptProps> = ({
                 onClick={saveEditedPrompt}
               >
                 <Save size={12} className="mr-1" />
-                Save
+                保存
               </Button>
             </div>
           </div>
@@ -202,7 +202,7 @@ const ConversationPrompt: React.FC<ConversationPromptProps> = ({
           <div className="relative group">
             <Textarea
               value={prompt}
-              placeholder="Conversation prompt will appear here..."
+              placeholder="对话提示词将显示在这里…"
               readOnly
               className="w-full p-1.5 pr-8 theme-bg-input theme-border theme-text-primary resize-y min-h-[80px] text-xs"
               rows={4}

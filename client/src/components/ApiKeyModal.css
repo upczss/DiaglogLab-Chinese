@@ -1,0 +1,30 @@
+.api-key-overlay {
+  position: fixed;
+  inset: 40px 0 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+  background: rgba(226, 235, 247, .82);
+  backdrop-filter: blur(8px);
+}
+.api-key-dialog {
+  width: min(100%, 520px);
+  max-height: calc(100dvh - 88px);
+  overflow-y: auto;
+  padding: 30px;
+  border: 1px solid #e2e8f0;
+  border-radius: 22px;
+  background: #fff;
+  color: #1e293b;
+  box-shadow: 0 24px 80px rgba(47, 79, 126, .16);
+}
+.api-key-eyebrow { margin-bottom: 14px; color: #2563eb; font-size: 12px; font-weight: 600; letter-spacing: .04em; }
+.api-key-dialog input { background: #f8fafc; min-height: 44px; transition: border-color .2s, box-shadow .2s; }
+.api-key-dialog input:focus { outline: none; border-color: #60a5fa; box-shadow: 0 0 0 3px #dbeafe; }
+.api-key-dialog button { transition: background-color .2s, box-shadow .2s; }
+.api-key-dialog button:focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }
+.api-key-hint { margin-top: 8px; font-size: 12px; color: #64748b; line-height: 1.6; }
+@media (max-width: 540px) { .api-key-overlay { padding: 12px; } .api-key-dialog { padding: 22px; } }

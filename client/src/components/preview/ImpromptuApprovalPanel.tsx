@@ -7,7 +7,7 @@ interface ImpromptuApprovalPanelProps {
   onApprove: (editedContent?: string) => void;
   onReject: () => void;
   onEdit?: (messageContent: string) => void;
-  onRegenerateWithMode?: (mode: string) => void;
+  onRegenerateWithMode?: (mode: string) => Promise<void>;
 }
 
 const ImpromptuApprovalPanel: React.FC<ImpromptuApprovalPanelProps> = ({ 
@@ -27,13 +27,14 @@ const ImpromptuApprovalPanel: React.FC<ImpromptuApprovalPanelProps> = ({
   const [editedContent, setEditedContent] = useState(content);
   const [selectedDerailMode, setSelectedDerailMode] = useState(originalDerailMode);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [regenerationError, setRegenerationError] = useState('');
   const [hasEdited, setHasEdited] = useState(false);
   
   const derailModeOptions = [
-    { value: 'drift', label: 'TOPIC SHIFT', description: 'Subtly shift to a new topic' },
-    { value: 'extend', label: 'NEW PERSPECTIVE', description: 'Add a novel perspective to the current topic' },
-    { value: 'question', label: 'PROBING QUESTION', description: 'Ask a question that shifts focus' },
-    { value: 'emotional', label: 'EMOTIONAL RESPONSE', description: 'Respond to emotional subtext' }
+    { value: 'drift', label: '话题转移', description: '自然地转向一个新话题' },
+    { value: 'extend', label: '新视角', description: '为当前话题补充新的视角' },
+    { value: 'question', label: '深入提问', description: '通过追问探索话题的其他方面' },
+    { value: 'emotional', label: '情绪回应', description: '回应对话中隐含的情绪' }
   ];
   
   const currentDerailModeOption = derailModeOptions.find(option => option.value === selectedDerailMode) || derailModeOptions[0];
@@ -43,14 +44,13 @@ const ImpromptuApprovalPanel: React.FC<ImpromptuApprovalPanelProps> = ({
     const newContent = message.content || message.message || '';
     setEditedContent(newContent);
     setHasEdited(false); // Reset edit state when message changes
-  }, [message.content, message.message]);
+  }, [message]);
   
   // Reset selected mode when message changes
   useEffect(() => {
     setSelectedDerailMode(message.derailMode || 'extend');
-    // Also reset regeneration state when message changes
-    setIsRegenerating(false);
-  }, [message.derailMode, message.content, message.message]);
+
+  }, [message]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -81,12 +81,17 @@ const ImpromptuApprovalPanel: React.FC<ImpromptuApprovalPanelProps> = ({
     setSelectedDerailMode(e.target.value);
   };
   
-  const handleRegenerate = () => {
-    if (onRegenerateWithMode && selectedDerailMode !== originalDerailMode) {
-      setIsRegenerating(true);
-      onRegenerateWithMode(selectedDerailMode);
-      // Note: We don't reset isRegenerating here because it's cleared in the useEffect above
-      // when the message changes, or in the parent's completion callback
+  const handleRegenerate = async () => {
+    if (!onRegenerateWithMode || isRegenerating) return;
+    setIsRegenerating(true);
+    setRegenerationError('');
+    try {
+      await onRegenerateWithMode(selectedDerailMode);
+      setIsEditing(false);
+    } catch (error) {
+      setRegenerationError('重新生成失败，请检查后端与模型服务后重试。');
+    } finally {
+      setIsRegenerating(false);
     }
   };
 
@@ -223,6 +228,7 @@ const ImpromptuApprovalPanel: React.FC<ImpromptuApprovalPanelProps> = ({
               <select 
                 value={selectedDerailMode}
                 onChange={handleModeChange}
+                disabled={isRegenerating}
                 className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs text-gray-500 dark:text-gray-400 border-none focus:ring-1 focus:ring-blue-400"
               >
                 {derailModeOptions.map(option => (
@@ -250,13 +256,13 @@ const ImpromptuApprovalPanel: React.FC<ImpromptuApprovalPanelProps> = ({
                     onClick={handleEditCancel}
                     className="inline-flex items-center justify-center h-6 px-2 text-xs font-medium rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-colors"
                   >
-                    Cancel
+                    取消
                   </button>
                   <button
                     onClick={handleEditSave}
                     className="inline-flex items-center justify-center h-6 px-2 text-xs font-medium rounded-md bg-green-500 hover:bg-green-600 text-white transition-colors"
                   >
-                    Save
+                    保存
                   </button>
                 </div>
               </div>
@@ -279,8 +285,8 @@ const ImpromptuApprovalPanel: React.FC<ImpromptuApprovalPanelProps> = ({
               </p>
             )}
             
-            {/* Regenerate button - only show if mode has changed */}
-            {selectedDerailMode !== originalDerailMode && (
+            {/* Regenerate the current type, or choose a different intervention type. */}
+            {onRegenerateWithMode && (
               <div className="flex justify-end">
                 <button
                   onClick={handleRegenerate}
@@ -297,7 +303,7 @@ const ImpromptuApprovalPanel: React.FC<ImpromptuApprovalPanelProps> = ({
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1 spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                       </svg>
-                      Regenerating...
+                      正在重新生成…
                     </>
                   ) : (
                     <>
@@ -307,7 +313,7 @@ const ImpromptuApprovalPanel: React.FC<ImpromptuApprovalPanelProps> = ({
                         <path d="M3 22v-6h6" />
                         <path d="M21 12a9 9 0 0 1-15 6.7l-3 3" />
                       </svg>
-                      Regenerate with {currentDerailModeOption.label}
+                      重新生成
                     </>
                   )}
                 </button>
@@ -315,8 +321,10 @@ const ImpromptuApprovalPanel: React.FC<ImpromptuApprovalPanelProps> = ({
             )}
           </div>
         </div>
+        {regenerationError && <p role="alert" className="px-3 text-xs text-red-600">{regenerationError}</p>}
         <div className="px-3 pb-1.5 pt-0 flex justify-end gap-1">
           <button
+            disabled={isRegenerating}
             onClick={onReject}
             className="inline-flex items-center justify-center h-7 px-2.5 text-xs font-medium rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-colors"
           >
@@ -324,9 +332,10 @@ const ImpromptuApprovalPanel: React.FC<ImpromptuApprovalPanelProps> = ({
               <path d="M18 6 6 18" />
               <path d="m6 6 12 12" />
             </svg>
-            Dismiss
+            拒绝
           </button>
           <button
+            disabled={isRegenerating}
             onClick={handleConsiderClick}
             onMouseEnter={() => setIsConsiderHovered(true)}
             onMouseLeave={() => setIsConsiderHovered(false)}
@@ -340,8 +349,8 @@ const ImpromptuApprovalPanel: React.FC<ImpromptuApprovalPanelProps> = ({
             <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20 6 9 17l-5-5" />
             </svg>
-            Consider
-            {hasEdited && <span className="ml-1 text-[9px] bg-white text-blue-600 px-1 rounded-full">Edited</span>}
+            接受并继续
+            {hasEdited && <span className="ml-1 text-[9px] bg-white text-blue-600 px-1 rounded-full">已编辑</span>}
           </button>
         </div>
       </div>

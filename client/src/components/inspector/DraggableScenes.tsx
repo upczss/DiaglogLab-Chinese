@@ -1,3 +1,4 @@
+import { authoringPartyLabel } from '../../libs/authoringChinese';
 import React, { useEffect, useState } from "react";
 import { 
   Card, 
@@ -270,7 +271,7 @@ const DraggableScenes: React.FC = () => {
         {/* Current project scene indicator (not saved) */}
         {sceneData.isActive && !sceneData.isSaved && (
           <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-amber-600 text-white text-[10px] rounded-md z-20 shadow-md">
-            Active Scene
+            当前场景
           </div>
         )}
         
@@ -378,7 +379,7 @@ const DraggableScenes: React.FC = () => {
                   >
                     {box.party && (
                       <div className="absolute top-0 left-0 right-0 bg-blue-900 bg-opacity-70 text-white text-xs px-1 truncate">
-                        {box.party}
+                        {authoringPartyLabel(box.party)}
                       </div>
                     )}
                     
@@ -408,7 +409,7 @@ const DraggableScenes: React.FC = () => {
                     
                     {hasContent && (
                       <div className="px-1 bg-amber-500 rounded text-white text-xs">
-                        Txt
+                        文本
                       </div>
                     )}
                   </div>
@@ -418,7 +419,7 @@ const DraggableScenes: React.FC = () => {
               {/* If no boxes or empty scene, show placeholder */}
               {(!boxes || boxes.length === 0) && (
                 <div className="w-full h-full flex items-center justify-center theme-text-tertiary">
-                  <span className="text-xs">Empty</span>
+                  <span className="text-xs">空</span>
                 </div>
               )}
             </div>
@@ -438,20 +439,20 @@ const DraggableScenes: React.FC = () => {
             <div className="text-[10px] flex flex-wrap gap-1">
               {avatarNames.length > 0 && (
                 <div className="truncate">
-                  <span className="font-medium theme-text-secondary">A: </span>
+                  <span className="font-medium theme-text-secondary">角色：</span>
                   <span className="theme-text-tertiary">{formatNames(avatarNames)}</span>
                 </div>
               )}
               {parties.size > 0 && (
                 <div className="truncate">
-                  <span className="font-medium theme-text-secondary">P: </span>
+                  <span className="font-medium theme-text-secondary">群组：</span>
                   <span className="text-blue-400">{formatNames(Array.from(parties))}</span>
                 </div>
               )}
               {hasAnyContent && (
                 <div className="truncate">
                   <span className="font-medium theme-text-secondary">C: </span>
-                  <span className="text-amber-400">Has content</span>
+                  <span className="text-amber-400">含素材</span>
                 </div>
               )}
             </div>
@@ -464,7 +465,7 @@ const DraggableScenes: React.FC = () => {
   return (
     <div className="w-full h-[calc(100%-28px)] flex flex-col theme-bg-tertiary rounded-lg shadow mt-3">
       {/* Scene Library header - fixed at the top */}
-      <div className="preview-header text-sm font-semibold theme-text-primary mb-2">Scene Library</div>
+      <div className="preview-header text-sm font-semibold theme-text-primary mb-2">场景库</div>
 
       {/* Scrollable content section */}
       <div className="overflow-y-auto flex-1 w-full">
@@ -516,7 +517,7 @@ const DraggableScenes: React.FC = () => {
 
         {/* Empty State */}
         {allScenes.length === 0 && (
-          <p className="text-sm theme-text-tertiary">No scenes available.</p>
+          <p className="text-sm theme-text-tertiary">暂无场景。</p>
         )}
       </div>
     </div>

@@ -22,13 +22,13 @@ const ConnectionInspector = () => {
   };
 
   if (!localConnection) {
-    return <p className="theme-text-error">No connection data available.</p>;
+    return <p className="theme-text-error">暂无连接信息。</p>;
   }
 
   return (
     <div className="connection-inspector p-4">
       <h3 className="text-lg font-semibold mb-3 theme-text-accent">
-        Connection: {localConnection.id ?? "UNDEFINED"}
+        连接： {localConnection.id ?? "未定义"}
       </h3>
       
       <div className="space-y-4">
@@ -40,7 +40,7 @@ const ConnectionInspector = () => {
         </div> */}
         
         <div>
-          <label className="block text-sm font-medium mb-1">Transition</label>
+          <label className="block text-sm font-medium mb-1">阶段过渡</label>
           <input
             type="text"
             className="w-full px-2 py-1 border theme-border theme-bg-input theme-text-primary rounded-md"
@@ -53,7 +53,7 @@ const ConnectionInspector = () => {
           onClick={handleDelete} 
           className="mt-4 px-4 py-2 theme-bg-error hover:theme-bg-error-hover theme-text-inverse rounded-md transition-colors"
         >
-          Delete
+          删除
         </button>
       </div>
     </div>

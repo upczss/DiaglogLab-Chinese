@@ -308,21 +308,21 @@ const SceneSetupModal = ({
               <button
                 onClick={createNewScene}
               className="px-3 py-1.5 theme-bg-accent theme-text-inverse rounded-lg hover:theme-bg-accent-hover text-sm flex items-center font-medium shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-                title="Create New Scene"
+                title="创建新场景"
               >
               <Plus className="h-4 w-4 mr-1.5" />
-                New Scene
+                新建场景
               </button>
               
               <label 
                 htmlFor="file-upload" 
               className="px-3 py-1.5 theme-bg-tertiary theme-text-primary rounded-lg hover:theme-bg-hover text-sm flex items-center font-medium cursor-pointer shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-                title="Load from File"
+                title="从文件加载"
               >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0l-4 4m4-4v12" />
                 </svg>
-                Load File
+                加载文件
               </label>
               <input
                 id="file-upload"
@@ -342,7 +342,7 @@ const SceneSetupModal = ({
                         // Create a new scene with the loaded data
                         const loadedScene = {
                           id: jsonData.id || `scene-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-                          name: jsonData.name || "Imported Scene",
+                          name: jsonData.name || "导入的场景",
                           boxes: [],
                           backgroundImage: jsonData.backgroundImage,
                           hasUnsavedChanges: false,
@@ -495,7 +495,7 @@ const SceneSetupModal = ({
                       } catch (error) {
                         console.error("Error parsing scene file:", error);
                         setErrorMessage(
-                          "Failed to load scene: Invalid file format",
+                          "加载场景失败：文件格式无效",
                         );
                       }
                     };
@@ -519,10 +519,10 @@ const SceneSetupModal = ({
                 </svg>
               </div>
             <p className="theme-text-primary text-sm font-medium mb-1">
-              {isDragOver ? 'Drop scene to load' : 'Drag and drop a scene here'}
+              {isDragOver ? "松开鼠标以加载场景" : "将场景拖到这里"}
             </p>
             <p className="theme-text-tertiary text-xs">
-              or use the buttons above to get started
+              也可以点击上方按钮开始
             </p>
             </div>
         </div>

@@ -1,3 +1,5 @@
+import { authoringPartyLabel } from '../../libs/authoringChinese';
+import { authoringLabel } from '../../libs/authoringChinese';
 import { useState, useEffect, useMemo } from "react"
 import useEditorStore, { EditorState, SnippetNode, InterruptionRule, BackChannelRule, interactionPatterns, emotionOptions, Scene } from "./store"
 import { Card, CardContent} from "@/components/ui/card"
@@ -33,7 +35,7 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
     if (!node || !node.id) return "Snippet";
     const snippetNodes = nodes.filter(n => n.type === 'snippet');
     const index = snippetNodes.findIndex(n => n.id === node.id) + 1;
-    return `Snippet ${index}`;
+    return `片段 ${index}`;
   };
 
   // Effect to update the node when it's first selected
@@ -413,7 +415,7 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
     return (
       <Card className="w-full bg-background text-foreground">
         <CardContent className="p-6">
-          <p className="text-destructive">No snippet data available.</p>
+          <p className="text-destructive">暂无对话片段信息。</p>
         </CardContent>
       </Card>
     );
@@ -489,7 +491,7 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
               <ChevronRight className="w-4 h-4 theme-text-tertiary" />
             )}
             <span className="text-xs font-medium theme-text-primary">
-              General Context
+              整体背景
             </span>
           </div>
           
@@ -500,7 +502,7 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
                 value={localNode.topic || ""}
                 onChange={(e) => handleChange("topic", e.target.value)}
                 className="w-full p-1.5 theme-bg-input theme-border theme-text-primary focus:ring-0 focus:border-gray-400 h-7 text-xs"
-                placeholder="Enter general context..."
+                placeholder="请输入整场对话的背景与目标…"
               />
             </div>
           )}
@@ -518,7 +520,7 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
               <ChevronRight className="w-4 h-4 theme-text-tertiary" />
             )}
             <span className="text-xs font-medium theme-text-primary">
-              Avatars in Scene
+              场景角色
             </span>
           </div>
           
@@ -603,7 +605,7 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
 
                       {speaker.party && (
                         <div className="px-1.5 py-0.5 rounded text-xs whitespace-nowrap bg-green-500/20 border border-green-500/30 text-green-300">
-                          <span className="font-medium">{speaker.party}</span>
+                          <span className="font-medium">{authoringPartyLabel(speaker.party)}</span>
                         </div>
                       )}
 
@@ -611,14 +613,14 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
                            localNode.attachedScene?.globalPartySettings?.moderatorParty && 
                            speaker.party === localNode.attachedScene?.globalPartySettings?.moderatorParty && (
                             <div className="px-2 py-0.5 rounded text-xs whitespace-nowrap bg-yellow-500/20 border border-yellow-500/30 text-yellow-300">
-                              <span className="font-medium">Moderator</span>
+                              <span className="font-medium">主持人</span>
                             </div>
                       )}
 
                       {isSelected && partyInfo && (
                         <div className="flex items-center gap-2">
                           <div className="px-2 py-0.5 rounded text-xs whitespace-nowrap bg-blue-500/20 border border-blue-500/30 text-blue-300">
-                            <span className="font-medium">Party: {partyInfo.party}</span>
+                            <span className="font-medium">群组： {partyInfo.party}</span>
                             {partyInfo.avatarCount > 1 && (
                               <span className="ml-1 text-blue-400/60">({partyInfo.avatarCount})</span>
                             )}
@@ -632,10 +634,10 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
                 );
               })}
               {selectedSpeakerIds.length === 0 && (
-                <p className="text-xs text-yellow-400 mt-2">No avatars selected. Default speakers will be used.</p>
+                <p className="text-xs text-yellow-400 mt-2">尚未选择角色，将使用默认参与者。</p>
               )}
               {sceneAvatars.length === 0 && (
-                <p className="text-xs text-yellow-400 mt-2">No scene attached or no avatars in the scene. Showing default speakers.</p>
+                <p className="text-xs text-yellow-400 mt-2">尚未关联场景或场景中没有角色，当前显示默认参与者。</p>
               )}
             </div>
           )}
@@ -662,14 +664,14 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
               className={`px-2 py-1 border-b-2 text-xs font-medium ${activeTab === 'basic' ? 'theme-border-accent theme-text-accent' : 'border-transparent theme-text-tertiary hover:theme-text-secondary hover:theme-border-tertiary'}`}
               onClick={() => setActiveTab('basic')}
             >
-              Basic Configuration
+              基本配置
             </button>
             <button 
               type="button"
               className={`px-2 py-1 border-b-2 text-xs font-medium ${activeTab === 'advanced' ? 'theme-border-accent theme-text-accent' : 'border-transparent theme-text-tertiary hover:theme-text-secondary hover:theme-border-tertiary'}`}
               onClick={() => setActiveTab('advanced')}
             >
-              Advanced Settings
+              高级设置
             </button>
           </nav>
           
@@ -688,28 +690,28 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
                     ) : (
                       <ChevronRight className="w-4 h-4 theme-text-tertiary mr-1" />
                     )}
-                    <h3 className="text-xs font-medium theme-text-primary">Snippet Details</h3>
+                    <h3 className="text-xs font-medium theme-text-primary">片段详情</h3>
                   </div>
                   
                   {isSnippetDetailsExpanded && (
                     <div className="p-2 space-y-3">
                       <div className="space-y-1">
                         <label htmlFor="subTopic" className="block text-xs font-medium theme-text-primary">
-                          Topic
+                          片段主题
                         </label>
                         <Textarea
                           id="subTopic"
                           value={localNode.subTopic || ""}
                           onChange={(e) => handleChange("subTopic", e.target.value)}
                           className="w-full p-1.5 theme-bg-input theme-border theme-text-primary resize-y min-h-[30px] text-xs"
-                          placeholder="Enter sub topic..."
+                          placeholder="请输入这个阶段讨论的具体主题…"
                         />
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         <div className="space-y-1">
                           <label htmlFor="turns" className="block text-xs font-medium theme-text-primary">
-                            Turns
+                            发言轮数
                           </label>
                           <Input
                             id="turns"
@@ -731,7 +733,7 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
                         </div>
                         <div className="space-y-1">
                           <label htmlFor="snippetInitiation" className="block text-xs font-medium theme-text-primary">
-                            Initiator
+                            发起者
                           </label>
                           <Select 
                             value={localNode.initiator?.id || ""}
@@ -741,7 +743,7 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
                             }}
                           >
                             <SelectTrigger className="w-full p-1.5 theme-bg-input theme-border theme-text-primary focus:ring-0 focus:border-gray-400 h-7 text-xs">
-                              <SelectValue placeholder="Initiator" />
+                              <SelectValue placeholder="发起者" />
                             </SelectTrigger>
                             <SelectContent className="max-h-[150px] overflow-y-auto theme-bg-secondary theme-border theme-text-primary">
                               {(localNode.speakers || []).map((speaker) => (
@@ -758,19 +760,19 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         <div className="space-y-1">
                           <label htmlFor="interactionPattern" className="block text-xs font-medium theme-text-primary">
-                            Interaction Pattern
+                            互动风格
                           </label>
                           <Select
                             value={localNode.interactionPattern || "neutral"}
                             onValueChange={(value) => handleChange("interactionPattern", value)}
                           >
                             <SelectTrigger className="w-full p-1.5 theme-bg-input theme-border theme-text-primary focus:ring-0 focus:border-gray-400 h-7 text-xs">
-                              <SelectValue placeholder="Select pattern" />
+                              <SelectValue placeholder="请选择互动风格" />
                             </SelectTrigger>
                             <SelectContent className="max-h-[150px] overflow-y-auto theme-bg-secondary theme-border theme-text-primary">
                               {interactionPatterns.map((pattern) => (
-                                <SelectItem key={`pattern-${pattern}`} value={pattern} className="text-xs">
-                                  {pattern}
+                                <SelectItem key={`pattern-${authoringLabel(pattern)}`} value={authoringLabel(pattern)} className="text-xs">
+                                  {authoringLabel(pattern)}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -790,8 +792,8 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
                             </SelectTrigger>
                             <SelectContent className="max-h-[150px] overflow-y-auto theme-bg-secondary theme-border theme-text-primary">
                               {turnTakingModes.map((mode) => (
-                                <SelectItem key={`mode-${mode}`} value={mode} className="text-xs">
-                                  {mode}
+                                <SelectItem key={`mode-${authoringLabel(mode)}`} value={authoringLabel(mode)} className="text-xs">
+                                  {authoringLabel(mode)}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -815,8 +817,8 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
                         ) : (
                           <ChevronRight className="w-4 h-4 theme-text-tertiary" />
                         )}
-                        <h3 className="text-xs font-medium theme-text-primary">Conversation Prompt</h3>
-                        <TooltipIcon text="This prompt is used to guide the conversation generation" />
+                        <h3 className="text-xs font-medium theme-text-primary">对话提示词</h3>
+                        <TooltipIcon text="用于指导模型生成这个片段的对话内容" />
                       </div>
                       <Button 
                         size="sm" 
@@ -830,7 +832,7 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
                         }}
                       >
                         <RefreshCw size={12} />
-                        Regenerate
+                        重新生成
                       </Button>
                     </div>
 
@@ -863,11 +865,11 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
                 {/* Interruption Rules */}
                 <div className="theme-bg-secondary rounded-md border theme-border overflow-hidden">
                   <div className="theme-bg-panel px-3 py-1.5 border-b theme-border">
-                    <h3 className="text-xs font-medium theme-text-primary">Interruption Rules</h3>
+                    <h3 className="text-xs font-medium theme-text-primary">插话规则</h3>
                   </div>
                   <div className="p-2 space-y-3">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs theme-text-secondary">Add new rule</span>
+                      <span className="text-xs theme-text-secondary">添加规则</span>
                       <Button
                         size="sm"
                         variant="outline"
@@ -880,18 +882,18 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
                         }
                       >
                         <PlusCircle size={12} />
-                        <span>Add Rule</span>
+                        <span>添加规则</span>
                       </Button>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                       <div className="space-y-1">
-                        <label className="block text-xs font-medium theme-text-primary">From</label>
+                        <label className="block text-xs font-medium theme-text-primary">发起者</label>
                         <Select
                           value={localNode.interruptionFromSpeaker || ""}
                           onValueChange={(value) => handleChange("interruptionFromSpeaker", value)}
                         >
                           <SelectTrigger className="w-full p-1.5 theme-bg-input theme-border theme-text-primary focus:ring-0 focus:border-gray-400 h-7 text-xs">
-                            <SelectValue placeholder="From" />
+                            <SelectValue placeholder="发起者" />
                           </SelectTrigger>
                           <SelectContent className="max-h-[150px] overflow-y-auto theme-bg-secondary theme-border theme-text-primary">
                             {(localNode.speakers || []).map((speaker) => (
@@ -903,13 +905,13 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
                         </Select>
                       </div>
                       <div className="space-y-1">
-                        <label className="block text-xs font-medium theme-text-primary">To</label>
+                        <label className="block text-xs font-medium theme-text-primary">回应对象</label>
                         <Select
                           value={localNode.interruptionToSpeaker || ""}
                           onValueChange={(value) => handleChange("interruptionToSpeaker", value)}
                         >
                           <SelectTrigger className="w-full p-1.5 theme-bg-input theme-border theme-text-primary focus:ring-0 focus:border-gray-400 h-7 text-xs">
-                            <SelectValue placeholder="To" />
+                            <SelectValue placeholder="回应对象" />
                           </SelectTrigger>
                           <SelectContent className="max-h-[150px] overflow-y-auto theme-bg-secondary theme-border theme-text-primary">
                             {toSpeakers.map((speaker) => (
@@ -921,18 +923,18 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
                         </Select>
                       </div>
                       <div className="space-y-1">
-                        <label className="block text-xs font-medium theme-text-primary">Emotion</label>
+                        <label className="block text-xs font-medium theme-text-primary">情绪</label>
                         <Select
                           value={localNode.interruptionEmotion || ""}
                           onValueChange={(value) => handleChange("interruptionEmotion", value)}
                         >
                           <SelectTrigger className="w-full p-1.5 theme-bg-input theme-border theme-text-primary focus:ring-0 focus:border-gray-400 h-7 text-xs">
-                            <SelectValue placeholder="Emotion" />
+                            <SelectValue placeholder="情绪" />
                           </SelectTrigger>
                           <SelectContent className="max-h-[150px] overflow-y-auto theme-bg-secondary theme-border theme-text-primary">
                             {emotionOptions.map((emotion) => (
-                              <SelectItem key={`emotion-${emotion}`} value={emotion} className="text-xs">
-                                {emotion}
+                              <SelectItem key={`emotion-${authoringLabel(emotion)}`} value={authoringLabel(emotion)} className="text-xs">
+                                {authoringLabel(emotion)}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -953,8 +955,8 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
                                 <span className="theme-text-accent font-medium">{rule.fromSpeaker.name}</span>
                                 <span className="mx-1 theme-text-tertiary">→</span>
                                 <span className="theme-text-accent font-medium">{rule.toSpeaker.name}</span>
-                                <span className="mx-1 theme-text-tertiary">with</span>
-                                <span className="theme-text-warning font-medium">{rule.emotion}</span>
+                                <span className="mx-1 theme-text-tertiary">方式</span>
+                                <span className="theme-text-warning font-medium">{authoringLabel(rule.emotion)}</span>
                               </span>
                             </div>
                             <Button
@@ -975,11 +977,11 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
                 {/* Back Channel Rules */}
                 <div className="theme-bg-secondary rounded-md border theme-border overflow-hidden">
                   <div className="theme-bg-panel px-3 py-1.5 border-b theme-border">
-                    <h3 className="text-xs font-medium theme-text-primary">Back Channel Rules</h3>
+                    <h3 className="text-xs font-medium theme-text-primary">非语言反馈规则</h3>
                   </div>
                   <div className="p-2 space-y-3">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs theme-text-secondary">Add new rule</span>
+                      <span className="text-xs theme-text-secondary">添加规则</span>
                       <Button
                         size="sm"
                         variant="outline"
@@ -990,18 +992,18 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
                         }
                       >
                         <PlusCircle size={12} />
-                        <span>Add Rule</span>
+                        <span>添加规则</span>
                       </Button>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                       <div className="space-y-1">
-                        <label className="block text-xs font-medium theme-text-primary">From</label>
+                        <label className="block text-xs font-medium theme-text-primary">发起者</label>
                         <Select
                           value={localNode.backChannelFromSpeaker || ""}
                           onValueChange={(value) => handleChange("backChannelFromSpeaker", value)}
                         >
                           <SelectTrigger className="w-full p-1.5 theme-bg-input theme-border theme-text-primary focus:ring-0 focus:border-gray-400 h-7 text-xs">
-                            <SelectValue placeholder="From" />
+                            <SelectValue placeholder="发起者" />
                           </SelectTrigger>
                           <SelectContent className="max-h-[150px] overflow-y-auto theme-bg-secondary theme-border theme-text-primary">
                             {(localNode.speakers || []).map((speaker) => (
@@ -1013,13 +1015,13 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
                         </Select>
                       </div>
                       <div className="space-y-1">
-                        <label className="block text-xs font-medium theme-text-primary">To</label>
+                        <label className="block text-xs font-medium theme-text-primary">回应对象</label>
                         <Select
                           value={localNode.backChannelToSpeaker || ""}
                           onValueChange={(value) => handleChange("backChannelToSpeaker", value)}
                         >
                           <SelectTrigger className="w-full p-1.5 theme-bg-input theme-border theme-text-primary focus:ring-0 focus:border-gray-400 h-7 text-xs">
-                            <SelectValue placeholder="To" />
+                            <SelectValue placeholder="回应对象" />
                           </SelectTrigger>
                           <SelectContent className="max-h-[150px] overflow-y-auto theme-bg-secondary theme-border theme-text-primary">
                             {backChannelToSpeakers.map((speaker) => (
@@ -1031,18 +1033,18 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
                         </Select>
                       </div>
                       <div className="space-y-1">
-                        <label className="block text-xs font-medium theme-text-primary">Emotion</label>
+                        <label className="block text-xs font-medium theme-text-primary">情绪</label>
                         <Select
                           value={localNode.backChannelEmotion || ""}
                           onValueChange={(value) => handleChange("backChannelEmotion", value)}
                         >
                           <SelectTrigger className="w-full p-1.5 theme-bg-input theme-border theme-text-primary focus:ring-0 focus:border-gray-400 h-7 text-xs">
-                            <SelectValue placeholder="Emotion" />
+                            <SelectValue placeholder="情绪" />
                           </SelectTrigger>
                           <SelectContent className="max-h-[150px] overflow-y-auto theme-bg-secondary theme-border theme-text-primary">
                             {emotionOptions.map((emotion) => (
-                              <SelectItem key={`emotion-${emotion}`} value={emotion} className="text-xs">
-                                {emotion}
+                              <SelectItem key={`emotion-${authoringLabel(emotion)}`} value={authoringLabel(emotion)} className="text-xs">
+                                {authoringLabel(emotion)}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -1063,8 +1065,8 @@ const SnippetInspector: React.FC<{ currentTopic: string }> = ({ currentTopic }) 
                                 <span className="theme-text-accent font-medium">{rule.fromSpeaker.name}</span>
                                 <span className="mx-1 theme-text-tertiary">→</span>
                                 <span className="theme-text-accent font-medium">{rule.toSpeaker.name}</span>
-                                <span className="mx-1 theme-text-tertiary">with</span>
-                                <span className="theme-text-warning font-medium">{rule.emotion}</span>
+                                <span className="mx-1 theme-text-tertiary">方式</span>
+                                <span className="theme-text-warning font-medium">{authoringLabel(rule.emotion)}</span>
                               </span>
                             </div>
                             <Button

@@ -1,9 +1,13 @@
+import { authoringPartyDescription } from '../../libs/authoringChinese';
+import { authoringPartyLabel } from '../../libs/authoringChinese';
 import React, { useState, useEffect } from 'react';
 import { X, Trash, Plus, HelpCircle, Save, Settings, Users, Box as BoxIcon } from 'lucide-react';
-import useEditorStore, { getDefaultParties } from './store';
+import useEditorStore, { getDefaultParties as getOriginalDefaultParties } from './store';
 import { cleanupPartyConfigs } from '../avatarconfig/utils/partyHelpers';
 
 // Change the component to accept global prop to indicate global mode
+const getDefaultParties = () => getOriginalDefaultParties().map(party => ({ ...party, description: authoringPartyDescription(party.description) }));
+
 const GlobalPartyInspector = ({ global = true }) => {
   // Initialize parties state with an empty array
   const [parties, setParties] = useState(getDefaultParties());
@@ -106,7 +110,7 @@ const GlobalPartyInspector = ({ global = true }) => {
           return partyConfigs[name]?.description || 
                  savedParties.find(p => p.name === name)?.description ||
                  getDefaultParties().find(p => p.name === name)?.description || 
-                 `Default description for ${name}. Edit this to provide context about this party's role and behavior.`;
+                 `请补充“${name}”在对话中的职责和交流方式。`;
         };
         
         const existingPartyIndex = combinedParties.findIndex(p => p.name === partyName);
@@ -286,7 +290,7 @@ const GlobalPartyInspector = ({ global = true }) => {
     return partyConfigs[partyName]?.description || 
            parties.find(p => p.name === partyName)?.description ||
            getDefaultParties().find(p => p.name === partyName)?.description || 
-           `Default description for ${partyName}. Edit this to provide context about this party's role and behavior.`;
+           `请补充“${partyName}”在对话中的职责和交流方式。`;
   };
 
   const handleUpdatePartyConfig = (partyName, field, value) => {
@@ -618,7 +622,7 @@ const GlobalPartyInspector = ({ global = true }) => {
         // Create new party configuration
         const newParty = {
           name: trimmedPartyName,
-          description: newPartyDescription.trim() || `Default description for ${trimmedPartyName}. Edit this to provide context about this party's role and behavior.`,
+          description: newPartyDescription.trim() || `请补充“${trimmedPartyName}”在对话中的职责和交流方式。`,
           speakingMode: 'random',
           hasRepresentative: false,
           enableBackchannel: globalSettings.enableBackchannel,
@@ -679,7 +683,7 @@ const GlobalPartyInspector = ({ global = true }) => {
   };
 
   const handleDeleteParty = (partyName) => {
-    if (confirm(`Are you sure you want to delete the party "${partyName}"? This will remove it from all boxes.`)) {
+    if (confirm(`确定删除群组“${partyName}”吗？这会取消所有容器与该群组的关联。`)) {
       // Remove party from savedParties
       const updatedParties = parties.filter(p => p.name !== partyName);
       setParties(updatedParties);
@@ -730,7 +734,7 @@ const GlobalPartyInspector = ({ global = true }) => {
       {/* Sticky header with party selection and assignments */}
       <div className="sticky top-0 theme-bg-secondary theme-border-b theme-border p-2 shadow-sm z-10">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-sm font-medium theme-text-primary">Global Party Manager</h2>
+          <h2 className="text-sm font-medium theme-text-primary">全局群组管理</h2>
           {global && (
             <button
               onClick={closeInspector}
@@ -745,14 +749,14 @@ const GlobalPartyInspector = ({ global = true }) => {
         <div className="mb-3 p-2 theme-bg-secondary rounded-lg border theme-border">
           <div className="flex items-center mb-2">
             <Users className="w-4 h-4 mr-1.5 theme-text-accent" />
-            <span className="text-xs font-medium theme-text-primary">Current Party Assignments</span>
+            <span className="text-xs font-medium theme-text-primary">当前群组分配</span>
           </div>
           <div className="space-y-1.5">
             {Object.entries(partyAssignments).length > 0 ? (
               Object.entries(partyAssignments).map(([partyName, boxes]) => (
                 <div key={partyName} className="flex items-center justify-between text-xs theme-bg-secondary p-1.5 rounded border theme-border">
                   <div className="flex items-center">
-                    <span className="text-blue-300 font-medium">{partyName}</span>
+                    <span className="text-blue-300 font-medium">{authoringPartyLabel(partyName)}</span>
                   </div>
                   <div className="flex items-center theme-text-primary">
                     <BoxIcon className="w-3.5 h-3.5 mr-1" />
@@ -760,14 +764,14 @@ const GlobalPartyInspector = ({ global = true }) => {
                     <span className="mx-1">•</span>
                     <Users className="w-3.5 h-3.5 mr-1" />
                     <span>
-                      {boxes.reduce((total, box) => total + box.avatarCount, 0)} avatars
+                      {boxes.reduce((total, box) => total + box.avatarCount, 0)} 角色
                     </span>
                   </div>
                 </div>
               ))
             ) : (
               <div className="text-xs theme-text-primary text-center py-1">
-                No party assignments in current scene
+                当前场景尚未分配群组
               </div>
             )}
           </div>
@@ -776,14 +780,14 @@ const GlobalPartyInspector = ({ global = true }) => {
         <div className="space-y-1">
           <div className="flex items-center justify-between">
             <label htmlFor="selectedParty" className="block text-xs font-medium theme-text-primary">
-              Select Party to Configure
+              选择要配置的群组
             </label>
             {!isCreatingParty ? (
               <button
                 type="button"
                 onClick={() => setIsCreatingParty(true)}
                 className="p-1 theme-bg-accent theme-text-inverse rounded-md hover:theme-bg-accent-hover transition-colors"
-                title="Create New Party"
+                title="创建新群组"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -797,10 +801,10 @@ const GlobalPartyInspector = ({ global = true }) => {
               onChange={(e) => setSelectedParty(e.target.value)}
               className="w-full p-1.5 theme-bg-input border theme-border rounded-md text-xs theme-text-primary"
             >
-              <option value="">Select a Party</option>
+              <option value="">请选择群组</option>
               {parties.map(partyOption => (
                 <option key={partyOption.name} value={partyOption.name}>
-                  {partyOption.name}
+                  {authoringPartyLabel(partyOption.name)}
                 </option>
               ))}
             </select>
@@ -809,7 +813,7 @@ const GlobalPartyInspector = ({ global = true }) => {
               <button
                 onClick={() => handleDeleteParty(selectedParty)}
                 className="p-1.5 theme-bg-error theme-text-inverse rounded-md hover:theme-bg-error-hover transition-colors"
-                title="Delete Party"
+                title="删除群组"
               >
                 <Trash size={14} />
               </button>
@@ -824,7 +828,7 @@ const GlobalPartyInspector = ({ global = true }) => {
                     type="text"
                     value={newPartyName}
                     onChange={(e) => setNewPartyName(e.target.value)}
-                    placeholder="New party name"
+                    placeholder="新群组名称"
                     className="flex-grow p-1 theme-bg-input border theme-border rounded-md text-xs theme-text-primary placeholder-text-tertiary"
                     autoFocus
                   />
@@ -832,14 +836,14 @@ const GlobalPartyInspector = ({ global = true }) => {
                 
                 <div className="space-y-1">
                   <label htmlFor="newPartyDescription" className="block text-xs font-medium theme-text-primary">
-                    Party Description
-                    <TooltipIcon text="Describe the role and purpose of this party" />
+                    群组说明
+                    <TooltipIcon text="说明这个群组在对话中的职责与目标" />
                   </label>
                   <textarea
                     id="newPartyDescription"
                     value={newPartyDescription}
                     onChange={(e) => setNewPartyDescription(e.target.value)}
-                    placeholder="Enter party description..."
+                    placeholder="请输入群组说明…"
                     className="w-full p-1.5 theme-bg-input border theme-border rounded-md text-xs theme-text-primary resize-y min-h-[60px]"
                   />
                 </div>
@@ -862,7 +866,7 @@ const GlobalPartyInspector = ({ global = true }) => {
                     disabled={!newPartyName.trim()}
                     className="px-3 py-1 theme-bg-accent theme-text-inverse rounded-md disabled:theme-bg-tertiary disabled:theme-text-tertiary disabled:cursor-not-allowed transition-colors"
                   >
-                    Create Party
+                    创建群组
                   </button>
                 </div>
               </div>
@@ -880,14 +884,14 @@ const GlobalPartyInspector = ({ global = true }) => {
               className={`px-2 py-1 border-b-2 text-xs font-medium ${activeTab === 'basic' ? 'theme-border-accent theme-text-accent' : 'border-transparent theme-text-tertiary hover:theme-text-secondary hover:theme-border-tertiary'}`}
               onClick={() => setActiveTab('basic')}
             >
-              Basic Configuration
+              基本配置
             </button>
             <button 
               type="button"
               className={`px-2 py-1 border-b-2 text-xs font-medium ${activeTab === 'communication' ? 'theme-border-accent theme-text-accent' : 'border-transparent theme-text-tertiary hover:theme-text-secondary hover:theme-border-tertiary'}`}
               onClick={() => setActiveTab('communication')}
             >
-              Party Communication
+              群组交流
             </button>
           </nav>
           
@@ -896,18 +900,18 @@ const GlobalPartyInspector = ({ global = true }) => {
             {activeTab === 'basic' && (
               <div className="theme-bg-secondary rounded-md border theme-border overflow-hidden">
                 <div className="theme-bg-panel px-3 py-1.5 border-b theme-border">
-                  <h3 className="text-xs font-medium theme-text-primary">Party Speaking Modes</h3>
+                  <h3 className="text-xs font-medium theme-text-primary">组内发言方式</h3>
                 </div>
                 <div className="p-2 space-y-3">
                   {Object.entries(partyAssignments).map(([partyName, boxes]) => (
                     <div key={partyName} className="p-2 theme-bg-accent-secondary rounded border theme-border-accent">
-                      <h4 className="text-xs font-medium theme-text-accent mb-2">{partyName}</h4>
+                      <h4 className="text-xs font-medium theme-text-accent mb-2">{authoringPartyLabel(partyName)}</h4>
                       
                       {/* Add Party Description Input */}
                       <div className="space-y-1 mb-3">
                         <label htmlFor={`description-${partyName}`} className="block text-xs font-medium theme-text-primary">
-                          Party Description
-                          <TooltipIcon text="Describe the role and purpose of this party" />
+                          群组说明
+                          <TooltipIcon text="说明这个群组在对话中的职责与目标" />
                         </label>
                         <textarea
                           id={`description-${partyName}`}
@@ -932,15 +936,15 @@ const GlobalPartyInspector = ({ global = true }) => {
                             localStorage.setItem('savedParties', JSON.stringify(updatedParties));
                           }}
                           className="w-full p-1.5 theme-bg-input border theme-border rounded-md text-xs theme-text-primary resize-y min-h-[60px]"
-                          placeholder="Enter party description..."
+                          placeholder="请输入群组说明…"
                         />
                       </div>
                       
                       <div className="space-y-2">
                         <div className="space-y-1">
                           <label htmlFor={`speakingMode-${partyName}`} className="block text-xs font-medium theme-text-primary">
-                            Speaking Mode
-                            <TooltipIcon text="Controls who can speak within this party" />
+                            发言方式
+                            <TooltipIcon text="设置群组内哪些成员可以发言" />
                           </label>
                           <select
                             id={`speakingMode-${partyName}`}
@@ -948,10 +952,10 @@ const GlobalPartyInspector = ({ global = true }) => {
                             onChange={(e) => handleSpeakingModeChange(partyName, e.target.value)}
                             className="w-full p-1.5 theme-bg-input border theme-border rounded-md text-xs theme-text-primary"
                           >
-                            <option value="random">Random Mode</option>
-                            <option value="all">All Members Speak</option>
-                            <option value="representative">Representative Only</option>
-                            <option value="subset">Subset of Members</option>
+                            <option value="random">随机选择</option>
+                            <option value="all">全体成员</option>
+                            <option value="representative">仅代表发言</option>
+                            <option value="subset">部分成员</option>
                           </select>
                         </div>
 
@@ -959,8 +963,8 @@ const GlobalPartyInspector = ({ global = true }) => {
                         {speakingModeSettings[partyName]?.mode === 'representative' && (
                           <div className="space-y-1 ml-4 p-2 theme-bg-accent-secondary rounded-md border theme-border-accent">
                             <label htmlFor={`representative-${partyName}`} className="block text-xs font-medium theme-text-primary">
-                              Representative Speaker
-                              <TooltipIcon text="The single avatar that will speak on behalf of the entire party" />
+                              群组代表
+                              <TooltipIcon text="由这位角色代表整个群组发言" />
                             </label>
                             <select
                               id={`representative-${partyName}`}
@@ -968,13 +972,13 @@ const GlobalPartyInspector = ({ global = true }) => {
                               onChange={(e) => handleRepresentativeChange(partyName, e.target.value)}
                               className="w-full p-1.5 theme-bg-input border theme-border rounded-md text-xs theme-text-primary"
                             >
-                              <option value="">Select a representative</option>
+                              <option value="">请选择群组代表</option>
                               {boxes.map(box => 
                                 box.elements
                                   .filter(el => el.elementType === 'avatar' && el.avatarData)
                                   .map(avatar => (
                                     <option key={avatar.id} value={avatar.id}>
-                                      {avatar.avatarData.name || 'Unnamed Avatar'}
+                                      {avatar.avatarData.name || "未命名角色"}
                                     </option>
                                   ))
                               )}
@@ -986,8 +990,8 @@ const GlobalPartyInspector = ({ global = true }) => {
                         {speakingModeSettings[partyName]?.mode === 'subset' && (
                           <div className="space-y-1 ml-4 p-2 theme-bg-accent-secondary rounded-md border theme-border-accent">
                             <label htmlFor={`subsetSize-${partyName}`} className="block text-xs font-medium theme-text-primary">
-                              Subset Size
-                              <TooltipIcon text="How many members of the party can speak at once" />
+                              发言人数
+                              <TooltipIcon text="每次选择多少位组内成员发言" />
                             </label>
                             <input
                               id={`subsetSize-${partyName}`}
@@ -1002,7 +1006,7 @@ const GlobalPartyInspector = ({ global = true }) => {
                         )}
                         
                         <div className="text-xs theme-text-primary mt-1">
-                          {boxes.reduce((total, box) => total + box.avatarCount, 0)} avatars in this party
+                          {boxes.reduce((total, box) => total + box.avatarCount, 0)} 位组内角色
                         </div>
                       </div>
                     </div>
@@ -1015,17 +1019,17 @@ const GlobalPartyInspector = ({ global = true }) => {
             {activeTab === 'communication' && (
               <div className="theme-bg-secondary rounded-md border theme-border overflow-hidden">
                 <div className="theme-bg-panel px-3 py-1.5 border-b theme-border">
-                  <h3 className="text-xs font-medium theme-text-primary">Global Party Settings</h3>
+                  <h3 className="text-xs font-medium theme-text-primary">全局群组设置</h3>
                 </div>
                 <div className="p-3 space-y-4">
                   <div className="p-2 theme-bg-accent-secondary rounded border theme-border-accent">
-                    <h4 className="text-xs font-medium theme-text-accent mb-2">Turn Taking</h4>
+                    <h4 className="text-xs font-medium theme-text-accent mb-2">发言顺序</h4>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <label htmlFor="partyTurnMode" className="block text-xs font-medium theme-text-primary">
-                          Turn Taking Mode
-                          <TooltipIcon text="Controls how speaking turns are managed. 'Free Discussion' allows spontaneous speaking, 'Round Robin' follows a sequence, 'Moderated' requires permission." />
+                          轮次规则
+                          <TooltipIcon text="设置发言顺序：自由讨论允许自主发言；轮流发言按顺序进行；主持模式由主持人安排。" />
                         </label>
                         <select
                           id="partyTurnMode"
@@ -1034,10 +1038,10 @@ const GlobalPartyInspector = ({ global = true }) => {
                           onChange={handleGlobalSettingChange}
                           className="w-full p-1.5 theme-bg-input border theme-border rounded-md text-xs theme-text-primary"
                         >
-                          <option value="free">Free Discussion</option>
-                          <option value="round-robin">Round Robin</option>
-                          <option value="moderated">Moderated (Hand Raising)</option>
-                          <option value="moderated:nohandraising">Moderated (No Hand Raising)</option>
+                          <option value="free">自由讨论</option>
+                          <option value="round-robin">轮流发言</option>
+                          <option value="moderated">主持模式（举手申请）</option>
+                          <option value="moderated:nohandraising">主持模式（无需举手）</option>
                         </select>
                       </div>
 
@@ -1045,10 +1049,10 @@ const GlobalPartyInspector = ({ global = true }) => {
                       {(globalSettings.partyTurnMode === 'moderated' || globalSettings.partyTurnMode === 'moderated:nohandraising') && (
                         <div className="space-y-1">
                           <label htmlFor="moderatorParty" className="block text-xs font-medium theme-text-primary">
-                            Moderator Party
+                            主持群组
                             <TooltipIcon text={globalSettings.partyTurnMode === 'moderated' 
-                              ? "The party that will moderate the discussion by approving raised hands" 
-                              : "The party that will moderate the discussion and control the speaking order"} />
+                              ? "由此群组审核举手申请并主持讨论"
+                              : "由此群组主持讨论并安排发言顺序"} />
                           </label>
                           <select
                             id="moderatorParty"
@@ -1057,16 +1061,16 @@ const GlobalPartyInspector = ({ global = true }) => {
                             onChange={handleGlobalSettingChange}
                             className="w-full p-1.5 theme-bg-input border theme-border rounded-md text-xs theme-text-primary"
                           >
-                            <option value="">Select Moderator Party</option>
+                            <option value="">请选择主持群组</option>
                             {Object.keys(partyAssignments).map(partyName => (
                               <option key={partyName} value={partyName}>
-                                {partyName} ({partyAssignments[partyName].reduce((total, box) => total + box.avatarCount, 0)} avatars)
+                                {authoringPartyLabel(partyName)} ({partyAssignments[partyName].reduce((total, box) => total + box.avatarCount, 0)} 位角色）
                               </option>
                             ))}
                           </select>
                           {globalSettings.moderatorParty && (
                             <p className="text-xs theme-text-primary mt-1">
-                              {partyAssignments[globalSettings.moderatorParty]?.reduce((total, box) => total + box.avatarCount, 0)} avatars in moderator party
+                              {partyAssignments[globalSettings.moderatorParty]?.reduce((total, box) => total + box.avatarCount, 0)} 位主持群组角色
                             </p>
                           )}
                         </div>
@@ -1075,7 +1079,7 @@ const GlobalPartyInspector = ({ global = true }) => {
                   </div>
 
                   <div className="p-2 theme-bg-accent-light rounded border theme-border-accent">
-                    <h4 className="text-xs font-medium theme-text-accent mb-2">Non-Verbal Communication</h4>
+                    <h4 className="text-xs font-medium theme-text-accent mb-2">非语言反馈</h4>
                     
                     <div className="flex items-center">
                       <input
@@ -1087,12 +1091,12 @@ const GlobalPartyInspector = ({ global = true }) => {
                         className="h-3 w-3 theme-text-accent theme-focus-ring theme-border rounded"
                       />
                       <label htmlFor="enableBackchannel" className="ml-2 block text-xs font-medium theme-text-primary">
-                        Enable Backchannel for All Parties
-                        <TooltipIcon text="Allows party members to communicate privately with each other without the rest of the conversation hearing them" />
+                        为所有群组启用非语言反馈
+                        <TooltipIcon text="允许组内成员进行不打断主对话的反馈互动" />
                       </label>
                     </div>
                     <p className="text-xs theme-text-primary ml-5 mt-1">
-                      Allow party members to communicate privately
+                      允许组内成员进行反馈互动
                     </p>
                   </div>
                 </div>
@@ -1106,7 +1110,7 @@ const GlobalPartyInspector = ({ global = true }) => {
       <div className="theme-bg-secondary theme-border-t theme-border p-2">
         <div className="flex items-center justify-between cursor-pointer" 
              onClick={() => document.getElementById('globalDebugSection').classList.toggle('hidden')}>
-          <h3 className="text-xs font-medium theme-text-tertiary">Advanced Options</h3>
+          <h3 className="text-xs font-medium theme-text-tertiary">高级选项</h3>
           <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 theme-text-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
@@ -1116,7 +1120,7 @@ const GlobalPartyInspector = ({ global = true }) => {
           <div className="flex flex-wrap gap-1">
             <button
               onClick={() => {
-                if (confirm('Are you sure you want to clear all saved party configurations?')) {
+                if (confirm("确定清除所有已保存的群组配置吗？")) {
                   localStorage.removeItem('partyConfigs');
                   localStorage.removeItem('globalPartySettings');
                   setPartyConfigs({});
@@ -1125,12 +1129,12 @@ const GlobalPartyInspector = ({ global = true }) => {
                     moderatorParty: '',
                     enableBackchannel: false
                   });
-                  alert('All party configurations have been cleared!');
+                  alert("已清除全部群组配置。");
                 }
               }}
               className="text-xs px-2 py-1 theme-bg-error-light theme-text-error rounded hover:theme-bg-error-light transition-colors"
             >
-              Clear All Party Configs
+              清除全部群组配置
             </button>
             
             <button
@@ -1148,15 +1152,15 @@ const GlobalPartyInspector = ({ global = true }) => {
                   const savedParties = savedPartiesStr ? JSON.parse(savedPartiesStr) : [];
                   console.log('Saved Parties:', savedParties);
                   
-                  alert('Party debug info has been logged to the console.');
+                  alert("群组调试信息已输出到控制台。");
                 } catch (error) {
                   console.error('Error reading party data:', error);
-                  alert('Error reading party data. See console for details.');
+                  alert("读取群组数据失败，详情见控制台。");
                 }
               }}
               className="text-xs px-2 py-1 theme-bg-accent-light theme-text-accent rounded hover:theme-bg-accent-light transition-colors"
             >
-              Debug Party Data
+              查看群组调试信息
             </button>
           </div>
         </div>

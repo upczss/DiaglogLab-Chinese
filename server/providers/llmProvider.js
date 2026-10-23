@@ -4,6 +4,7 @@ import * as geminiAPI from './geminiAPI.js';
 // LLM Provider types
 const PROVIDERS = {
   OPENAI: 'openai',
+  DEEPSEEK: 'deepseek',
   GEMINI: 'gemini'
 };
 
@@ -15,11 +16,14 @@ const MODELS = {
     GPT4: 'gpt-4',
     GPT4_TURBO: 'gpt-4-turbo'
   },
+  DEEPSEEK: { FLASH: 'deepseek-flash', PRO: 'deepseek-v4-pro' },
   GEMINI: geminiAPI.GEMINI_MODELS
 };
 
 // Default provider and models
 let currentProvider = PROVIDERS.GEMINI;
+let defaultDeepSeekModel = MODELS.DEEPSEEK.FLASH;
+let deepSeekApiKey = '';
 let defaultOpenAIModel = MODELS.OPENAI.DEFAULT;
 let defaultGeminiModel = geminiAPI.GEMINI_MODELS.FLASH;
 
@@ -53,6 +57,9 @@ function setDefaultModel(provider, model) {
     } else {
       throw new Error(`Invalid OpenAI model: ${model}`);
     }
+  } else if (provider === PROVIDERS.DEEPSEEK) {
+    if (!Object.values(MODELS.DEEPSEEK).includes(model)) throw new Error(`Invalid DeepSeek model: ${model}`);
+    defaultDeepSeekModel = model;
   } else if (provider === PROVIDERS.GEMINI) {
     if (Object.values(MODELS.GEMINI).includes(model)) {
       defaultGeminiModel = model;
@@ -78,7 +85,7 @@ function getProvider() {
  * @returns {object} Available models
  */
 function getAvailableModels() {
-  return currentProvider === PROVIDERS.GEMINI ? MODELS.GEMINI : MODELS.OPENAI;
+  return MODELS[currentProvider.toUpperCase()];
 }
 
 /**
@@ -86,6 +93,7 @@ function getAvailableModels() {
  * @returns {string}
  */
 function getCurrentModel() {
+  if (currentProvider === PROVIDERS.DEEPSEEK) return defaultDeepSeekModel;
   return currentProvider === PROVIDERS.GEMINI ? defaultGeminiModel : defaultOpenAIModel;
 }
 
@@ -107,14 +115,18 @@ async function generateText(prompt, options = {}) {
   } else {
     // OpenAI
     try {
-      const key = options.apiKey || openAIApiKey;
+      if (![PROVIDERS.OPENAI, PROVIDERS.DEEPSEEK].includes(provider)) throw new Error(`Invalid provider: ${provider}`);
+      const isDeepSeek = provider === PROVIDERS.DEEPSEEK;
+      const key = options.apiKey || (isDeepSeek ? deepSeekApiKey : openAIApiKey);
+      if (!key) throw new Error(`${provider} API key is not configured`);
       const response = await axios.post(
-        "https://api.openai.com/v1/chat/completions",
+        isDeepSeek ? "https://api.deepseek.com/chat/completions" : "https://api.openai.com/v1/chat/completions",
         {
-          model: options.model || defaultOpenAIModel,
+          model: options.model || (isDeepSeek ? defaultDeepSeekModel : defaultOpenAIModel),
+          ...(isDeepSeek ? { thinking: { type: "disabled" } } : {}),
           messages: [{ role: "user", content: prompt }],
-          max_tokens: options.maxTokens || 150,
-          temperature: options.temperature || 0.7,
+          max_tokens: options.maxTokens ?? 150,
+          temperature: options.temperature ?? 0.7,
         },
         {
           headers: {
@@ -126,7 +138,7 @@ async function generateText(prompt, options = {}) {
 
       return response.data.choices[0].message.content.trim();
     } catch (error) {
-      console.error("Error calling OpenAI API:", error);
+      console.error(`Error calling ${provider} API:`, error.response?.status || error.message);
       throw error;
     }
   }
@@ -151,14 +163,18 @@ async function chatCompletion(messages, options = {}) {
   } else {
     // OpenAI
     try {
-      const key = options.apiKey || openAIApiKey;
+      if (![PROVIDERS.OPENAI, PROVIDERS.DEEPSEEK].includes(provider)) throw new Error(`Invalid provider: ${provider}`);
+      const isDeepSeek = provider === PROVIDERS.DEEPSEEK;
+      const key = options.apiKey || (isDeepSeek ? deepSeekApiKey : openAIApiKey);
+      if (!key) throw new Error(`${provider} API key is not configured`);
       const response = await axios.post(
-        "https://api.openai.com/v1/chat/completions",
+        isDeepSeek ? "https://api.deepseek.com/chat/completions" : "https://api.openai.com/v1/chat/completions",
         {
-          model: options.model || defaultOpenAIModel,
+          model: options.model || (isDeepSeek ? defaultDeepSeekModel : defaultOpenAIModel),
+          ...(isDeepSeek ? { thinking: { type: "disabled" } } : {}),
           messages: messages,
-          max_tokens: options.maxTokens || 150,
-          temperature: options.temperature || 0.7,
+          max_tokens: options.maxTokens ?? 150,
+          temperature: options.temperature ?? 0.7,
         },
         {
           headers: {
@@ -170,7 +186,7 @@ async function chatCompletion(messages, options = {}) {
 
       return response.data.choices[0].message.content.trim();
     } catch (error) {
-      console.error("Error calling OpenAI API:", error);
+      console.error(`Error calling ${provider} API:`, error.response?.status || error.message);
       throw error;
     }
   }
@@ -206,3 +222,11 @@ export function isOpenAIConfigured() {
 }
 
 
+
+export function setDeepSeekApiKey(apiKey) {
+  deepSeekApiKey = String(apiKey || '').trim();
+}
+
+export function isDeepSeekConfigured() {
+  return Boolean(deepSeekApiKey);
+}

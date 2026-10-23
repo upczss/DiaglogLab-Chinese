@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import VideoMetricsPlayer from "./AudioTranscript";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { AudioSegment } from "../nodeeditor/utils/NodeEditorUtils";
-import { Button } from "../ui/button"; 
+import { Button } from "../ui/button";
 import { BarChart2, ChevronRight, Clock, MessageSquare, Users, Trash2, CheckCircle2, Loader2 } from "lucide-react";
 import API_CONFIG from "@/config";
+import './Verification.css';
 
 // Define expected data structure for the verification player
 export interface VerificationData {
@@ -40,7 +41,7 @@ const getAllVerificationData = (): VerificationData[] => {
     if (playedNodes) {
       parsedPlayedNodes = JSON.parse(playedNodes);
       console.log("Found played-nodes order:", parsedPlayedNodes);
-      
+
       // Directly get verification data for each played node ID in order
       for (const {nodeId, nodeTitle} of parsedPlayedNodes) {
         const key = `verification-data-${nodeId}`;
@@ -49,7 +50,7 @@ const getAllVerificationData = (): VerificationData[] => {
         if (savedData) {
           try {
             const parsedData = JSON.parse(savedData);
-            parsedData.title = `Conversation ${nodeTitle}`;
+            parsedData.title = `对话：${nodeTitle}`;
             parsedData.nodeId = nodeId;
             verificationDataEntries.push(parsedData);
           } catch (err) {
@@ -87,11 +88,11 @@ export default function VerificationPlayer() {
       if (allVerificationData.length > 0) {
         setVerificationData(allVerificationData);
       } else {
-        setError("No verification data found. Please export a conversation first.");
+        setError("请先在「对话编排」中运行并导出一段对话，再来查看回放和分析。");
       }
     } catch (err) {
       console.error("Error loading verification data:", err);
-      setError("Failed to load verification data. The data may be corrupted.");
+      setError("验证数据加载失败，请重新导出对话后再试。");
     } finally {
       setLoading(false);
     }
@@ -99,8 +100,8 @@ export default function VerificationPlayer() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-1 max-w-full h-[calc(100vh-4rem)] overflow-y-auto">
-        <Card className="w-full">
+      <div className="verification-container container mx-auto px-1 max-w-full overflow-y-auto">
+        <Card className="w-full verification-empty">
           <CardContent className="py-4">
             <div className="flex items-center justify-center py-6">
               <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
@@ -113,16 +114,16 @@ export default function VerificationPlayer() {
 
   if (error || verificationData.length === 0) {
     return (
-      <div className="container mx-auto px-1 max-w-full h-[calc(100vh-4rem)] overflow-y-auto">
+      <div className="verification-container container mx-auto px-1 max-w-full overflow-y-auto">
         <Card className="w-full">
           <CardContent className="py-8">
             <div className="flex flex-col items-center justify-center text-center">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                 <MessageSquare className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-xl font-medium mb-2">No Verification Data</h3>
+              <h3 className="text-xl font-medium mb-2">还没有可分析的对话</h3>
               <p className="text-base text-gray-500 max-w-md">
-                {error || "Please export a conversation first to view verification data."}
+                {error || "从「对话编排」导出对话后，即可在这里查看记录、回放和分析。"}
               </p>
             </div>
           </CardContent>
@@ -155,7 +156,7 @@ export default function VerificationPlayer() {
       });
 
       const result = await response.json();
-      
+
       if (result.success) {
         console.log('Deleted files:', result.deletedFiles);
         if (result.errors) {
@@ -179,19 +180,19 @@ export default function VerificationPlayer() {
   };
 
   return (
-    <div className="container mx-auto px-1 max-w-full h-[calc(100vh-4rem)] overflow-y-auto">
+    <div className="verification-container container mx-auto px-1 max-w-full overflow-y-auto">
       {verificationData.length > 1 && showSelector && (
         <Card className="border-primary/20">
           <CardHeader className="py-0.5 px-2">
             <CardTitle className="text-lg flex items-center justify-between">
-              <span>Available Conversations ({verificationData.length})</span>
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <span>可分析的对话（{verificationData.length}）</span>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setShowSelector(false)}
                 className="h-7 px-2"
               >
-                Hide Selector
+                收起列表
               </Button>
             </CardTitle>
           </CardHeader>
@@ -199,11 +200,11 @@ export default function VerificationPlayer() {
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-2">
               {verificationData.map((data, index) => {
                 return (
-                <div 
+                <div
                   key={`data-${index}`}
                   className={`border rounded-lg p-1.5 cursor-pointer transition-all ${
-                    selectedIndex === index 
-                      ? 'border-primary bg-primary/5 shadow-sm' 
+                    selectedIndex === index
+                      ? 'border-primary bg-primary/5 shadow-sm'
                       : 'border-gray-200 hover:border-primary/50 hover:bg-gray-50'
                   }`}
                   onClick={() => setSelectedIndex(index)}
@@ -237,6 +238,7 @@ export default function VerificationPlayer() {
                           }}
                           disabled={!selectedData?.segments?.length || deleting}
                           className="h-7 px-2 text-sm"
+                          title="删除此对话的语音文件" aria-label="删除此对话的语音文件"
                         >
                           {deleting ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
@@ -259,22 +261,22 @@ export default function VerificationPlayer() {
       {!showSelector && verificationData.length > 1 && (
         <div className="mb-2 flex justify-between items-center text-sm">
           <div className="font-medium">
-            Viewing: {selectedData.title}
+            正在查看： {selectedData.title}
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setShowSelector(true)}
             className="h-7 px-2 py-0 text-sm"
           >
-            Show All Conversations ({verificationData.length})
+            展开对话列表（{verificationData.length}）
           </Button>
         </div>
       )}
 
-      <VideoMetricsPlayer 
+      <VideoMetricsPlayer
         videoBlobs={[selectedData]}
       />
     </div>
   );
-} 
+}

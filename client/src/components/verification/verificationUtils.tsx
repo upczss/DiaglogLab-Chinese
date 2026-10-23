@@ -227,7 +227,7 @@ export const playSegmentAudio = (
   audioRef.current.onerror = (e) => {
     console.error("Error playing audio:", e);
     setIsPlaying(false);
-    toast.error("Failed to play audio segment");
+    toast.error("播放此段语音失败");
   };
   
   // Set playback position to segment start
@@ -237,12 +237,12 @@ export const playSegmentAudio = (
   audioRef.current.play()
     .then(() => {
       setIsPlaying(true);
-      toast.success("Playing segment audio");
+      toast.success("正在播放此段语音");
     })
     .catch(err => {
       console.error("Failed to play audio:", err);
       setIsPlaying(false);
-      toast.error("Failed to play audio: " + (err.message || "Unknown error"));
+      toast.error("语音播放失败：" + (err.message || "未知错误"));
     });
 };
 
@@ -409,16 +409,16 @@ export const getAudioTypeTooltip = (segment: any) => {
     return undefined;
   };
 
-  if (getProp('isSystemMessage')) return "System Message";
-  if (getProp('isBackchannel')) return "Backchannel";
+  if (getProp('isSystemMessage')) return "系统消息";
+  if (getProp('isBackchannel')) return "非语言反馈";
   if (getProp('isDerailing')) {
-    return getProp('derailMode') === 'drift' ? "Topic Shift" : "Perspective Shift";
+    return getProp('derailMode') === 'drift' ? "话题转移" : "视角转换";
   }
-  if (getProp('isHuman')) return "Human";
-  if (getProp('isProactive')) return "Proactive";
-  if (getProp('isInterruption')) return "Interruption";
-  if (getProp('isImpromptuPhaseStart')) return "Impromptu Start";
-  return "Message";
+  if (getProp('isHuman')) return "人类参与者";
+  if (getProp('isProactive')) return "主动发言";
+  if (getProp('isInterruption')) return "打断";
+  if (getProp('isImpromptuPhaseStart')) return "临时介入开始";
+  return "消息";
 };
 
 // Helper function to filter out system messages

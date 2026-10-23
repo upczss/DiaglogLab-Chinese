@@ -12,6 +12,27 @@ dist
 dist-ssr
 *.local
 .env
+.env.*
+!.env.example
+!.env.*.example
+
+# Credentials and local-only configuration
+*.pem
+*.key
+credentials*.json
+service-account*.json
+service_account*.json
+*.p12
+*.pfx
+
+# Generated files and personal uploads
+audio/
+uploads/
+exports/
+coverage/
+*.tsbuildinfo
+# Locally downloaded paper; keep it on disk, out of the public repository.
+/content/3746059.3747696.pdf
 
 # Editor directories and files
 .vscode/*

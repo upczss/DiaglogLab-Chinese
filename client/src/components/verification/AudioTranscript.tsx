@@ -1,3 +1,5 @@
+import { authoringLabel } from '../../libs/authoringChinese';
+import { chineseSystemMessage, interventionLabels } from '../../libs/chatChinese';
 import React, { useState, useRef, useEffect, createContext } from "react"
 import { createPortal } from "react-dom"
 import {
@@ -83,13 +85,13 @@ const VideoMetricsContext = createContext<VideoMetricsContextType>({
 // Extract reusable components
 const TimelineLegend = () => (
   <div className="p-2 mb-2 border rounded-lg text-sm">
-    <h3 className="font-medium mb-1">Timeline Indicators</h3>
+    <h3 className="font-medium mb-1">时间轴标记</h3>
     <div className="grid grid-cols-4 gap-2">
       {[
-        { emoji: EMOJI_QUESTION, label: "Question" },
-        { emoji: EMOJI_INTERRUPTION, label: "Interruption" },
-        { emoji: EMOJI_IMPROMPTU_START, label: "Impromptu" },
-        { emoji: EMOJI_SYSTEM, label: "System" }
+        { emoji: EMOJI_QUESTION, label: "提问" },
+        { emoji: EMOJI_INTERRUPTION, label: "打断" },
+        { emoji: EMOJI_IMPROMPTU_START, label: "临时介入" },
+        { emoji: EMOJI_SYSTEM, label: "系统" }
       ].map(({ emoji, label }) => (
         <div key={label} className="flex items-center gap-1">
           <span>{emoji}</span>
@@ -229,7 +231,7 @@ const BackchannelIndicator = ({
             <div className="text-sm text-gray-300 italic">{backchannel.message}</div>
             {backchannel.vibe && (
               <div className="text-sm mt-1 px-1.5 py-0.5 rounded bg-gray-700">
-                Vibe: {backchannel.vibe}
+                氛围： {authoringLabel(backchannel.vibe)}
               </div>
             )}
           </div>
@@ -261,26 +263,7 @@ const TranscriptSegment = ({
   const participant = getParticipant(segment.avatarId);
   const participantColor = participant?.color || '#6b7280';
 
-  const formatSystemMessage = (text: string) => {
-    if (getProp(segment, 'isSystemMessage')) {
-      if (text.includes("raised their hand")) {
-        return text.replace(/has raised their hand|raised their hand/, `✋ raised hand`);
-      }
-      if (text.includes("approved") && text.includes("to speak")) {
-        return text.replace(/has been approved|was approved/, `✓ approved`);
-      }
-      if (text.includes("started an impromptu discussion phase")) {
-        const mode = getProp(segment, 'derailMode') || (text.includes("different topic") ? "drift" : "extend");
-        const modeIcon = mode === "drift" ? "🔄" : "🔍";
-        const modeText = mode === "drift" ? "TOPIC SHIFT" : "NEW PERSPECTIVE";
-        return `${modeIcon}  ★ ${text.replace(/has started an impromptu discussion phase/, `STARTED IMPROMPTU PHASE (${modeText})`)} ★`;
-      }
-      if (text.includes("The impromptu discussion phase has ended")) {
-        return `✓  ★ ${text.replace(/The impromptu discussion phase has ended. Returning to the regular conversation./, 'IMPROMPTU PHASE ENDED')} ★`;
-      }
-    }
-    return text;
-  };
+  const formatSystemMessage = (text: string) => chineseSystemMessage(text, segment.message || {});
 
   const getSegmentClassName = () => {
     const baseClasses = "relative p-3 rounded-md cursor-pointer text-base shadow-sm";
@@ -335,12 +318,12 @@ const TranscriptSegment = ({
               {segment.avatarName}
               {getProp(segment, 'isHuman') && (
                 <span className="ml-1 text-[10px] bg-blue-700 text-white px-1 rounded">
-                  HUMAN
+                  人类代理
                 </span>
               )}
               {getProp(segment, 'isDerailing') && (
                 <span className="ml-1 text-[10px] bg-pink-700 text-white px-1 rounded">
-                  {getProp(segment, 'derailMode') === 'drift' ? 'TOPIC SHIFT' : 'PERSPECTIVE SHIFT'}
+                  {interventionLabels[getProp(segment, 'derailMode')] || '临时介入'}
                 </span>
               )}
             </div>
@@ -451,21 +434,21 @@ const ActiveSegmentDisplay = ({
         
         <div className="flex flex-wrap gap-0.5">
           {getProp(activeSegment, 'isSystemMessage') && (
-            <span className="px-1 py-0.5 text-[10px] bg-blue-100 text-blue-800 rounded-full">System</span>
+            <span className="px-1 py-0.5 text-[10px] bg-blue-100 text-blue-800 rounded-full">系统</span>
           )}
           {getProp(activeSegment, 'isBackchannel') && (
-            <span className="px-1 py-0.5 text-[10px] bg-green-100 text-green-800 rounded-full">Backchannel</span>
+            <span className="px-1 py-0.5 text-[10px] bg-green-100 text-green-800 rounded-full">非语言反馈</span>
           )}
           {getProp(activeSegment, 'isInterruption') && (
-            <span className="px-1 py-0.5 text-[10px] bg-amber-100 text-amber-800 rounded-full">Interruption</span>
+            <span className="px-1 py-0.5 text-[10px] bg-amber-100 text-amber-800 rounded-full">打断</span>
           )}
           {getProp(activeSegment, 'isDerailing') && (
             <span className="px-1 py-0.5 text-[10px] bg-rose-100 text-rose-800 rounded-full">
-              {getProp(activeSegment, 'derailMode') === 'drift' ? 'Topic Shift' : 'New Perspective'}
+              {getProp(activeSegment, 'derailMode') === 'drift' ? "话题转移" : "新视角"}
             </span>
           )}
           {getProp(activeSegment, 'isHuman') && (
-            <span className="px-1 py-0.5 text-[10px] bg-indigo-100 text-indigo-800 rounded-full">Human</span>
+            <span className="px-1 py-0.5 text-[10px] bg-indigo-100 text-indigo-800 rounded-full">人类参与者</span>
           )}
         </div>
       </div>
@@ -480,7 +463,7 @@ const ActiveSegmentDisplay = ({
         
         {activeSegment.emotion && (
           <div className="mt-1 text-sm text-muted-foreground">
-            Detected emotion: <span className="font-medium capitalize">{activeSegment.emotion}</span>
+            识别到的情绪： <span className="font-medium capitalize">{authoringLabel(activeSegment.emotion)}</span>
           </div>
         )}
       </div>
@@ -508,7 +491,7 @@ const AgentQuestionsPanel = ({ verificationData }: { verificationData: Verificat
 
   const askQuestion = async () => {
     if (!question.trim()) {
-      toast.error("Please enter a question")
+      toast.error("请先输入问题")
       return
     }
 
@@ -517,7 +500,7 @@ const AgentQuestionsPanel = ({ verificationData }: { verificationData: Verificat
     
     try {
       const provider = localStorage.getItem('LLM_PROVIDER') || 'gemini'
-      const key = provider === 'openai' ? localStorage.getItem('OPENAI_API_KEY') : localStorage.getItem('GEMINI_API_KEY')
+      const key = localStorage.getItem(`${provider.toUpperCase()}_API_KEY`)
       const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.VERIFICATION_ASK_AGENT}`, {
         method: 'POST',
         headers: {
@@ -544,13 +527,13 @@ const AgentQuestionsPanel = ({ verificationData }: { verificationData: Verificat
         ])
         setQuestion("") // Clear the question after successful submission
       } else {
-        setError(data.error || "Failed to get an answer")
-        toast.error("Failed to get an answer")
+        setError(data.error || "获取回答失败")
+        toast.error("获取回答失败")
       }
     } catch (error) {
       console.error("Error asking question:", error)
-      setError("An error occurred while trying to get an answer")
-      toast.error("An error occurred while trying to get an answer")
+      setError("获取回答时发生错误，请稍后重试")
+      toast.error("获取回答时发生错误，请稍后重试")
     } finally {
       setLoading(false)
     }
@@ -568,12 +551,12 @@ const AgentQuestionsPanel = ({ verificationData }: { verificationData: Verificat
       <div className="flex flex-col h-full w-[280px] flex-shrink-0 mr-6">
         <h3 className="text-sm font-medium flex items-center mb-3">
           <MessageCircle className="h-4 w-4 mr-2" />
-          Ask a Question
+          分析对话
         </h3>
         <div className="flex flex-col h-[calc(100%-2rem)]">
           <div className="flex-grow">
             <Textarea
-              placeholder="Ask about turn-taking patterns, sentiment analysis, topic coherence, etc."
+              placeholder="例如：谁主导了讨论？发言是否均衡？人工介入后话题发生了什么变化？"
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               className="h-full w-full text-sm p-4 rounded-lg border border-gray-200 shadow-sm resize-none"
@@ -589,7 +572,7 @@ const AgentQuestionsPanel = ({ verificationData }: { verificationData: Verificat
               className="text-sm h-9 px-4"
             >
               <RotateCcw className="mr-2 h-4 w-4" />
-              Clear
+              清空
             </Button>
             <Button
               onClick={askQuestion}
@@ -600,12 +583,12 @@ const AgentQuestionsPanel = ({ verificationData }: { verificationData: Verificat
               {loading ? (
                 <>
                   <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
-                  Processing...
+                  分析中…
                 </>
               ) : (
                 <>
                   <Send className="mr-2 h-4 w-4" />
-                  Ask AI
+                  向 AI 提问
                 </>
               )}
             </Button>
@@ -617,7 +600,7 @@ const AgentQuestionsPanel = ({ verificationData }: { verificationData: Verificat
       <div className="flex flex-col h-full flex-grow">
         <h3 className="text-sm font-medium flex items-center mb-3">
           <MessageSquare className="h-4 w-4 mr-2" />
-          AI Responses
+          分析结果
         </h3>
         <div className="overflow-y-auto border rounded-lg p-1 bg-gray-50/50 h-[calc(100%-2rem)] flex-grow">
           {answers.length > 0 ? (
@@ -628,7 +611,7 @@ const AgentQuestionsPanel = ({ verificationData }: { verificationData: Verificat
                   <div className="bg-gray-100 rounded-lg p-2 mb-2 border-l-4 border-primary shadow-sm">
                     <div className="flex items-center mb-1">
                       <MessageCircle className="h-3 w-3 mr-1 text-primary" />
-                      <span className="text-sm font-medium text-primary">Your Question</span>
+                      <span className="text-sm font-medium text-primary">你的问题</span>
                     </div>
                     <p className="text-sm font-medium">{answer.question}</p>
                   </div>
@@ -638,7 +621,7 @@ const AgentQuestionsPanel = ({ verificationData }: { verificationData: Verificat
                     <div className="text-sm text-gray-500 mb-2 flex items-center justify-between">
                       <div className="flex items-center">
                         <MessageSquare className="h-3 w-3 mr-1" />
-                        <span className="font-medium">AI Response</span>
+                        <span className="font-medium">AI 回答</span>
                       </div>
                       <span>{getTimeAgo(answer.timestamp)}</span>
                     </div>
@@ -652,7 +635,7 @@ const AgentQuestionsPanel = ({ verificationData }: { verificationData: Verificat
               {error ? (
                 <span className="text-red-500">{error}</span>
               ) : (
-                <span className="text-sm">Ask a question about the conversation to get insights from an AI agent</span>
+                <span className="text-sm">输入与这段对话有关的问题，让 AI 帮助分析。</span>
               )}
             </div>
           )}
@@ -839,7 +822,7 @@ export default function VideoMetricsPlayer({
   // Function to handle rerunning analytics
   const handleRerunAnalytics = () => {
     if (rerunsAvailable <= 0) {
-      toast.error("No reruns available");
+      toast.error("可用刷新次数已用完");
       return;
     }
     
@@ -849,7 +832,7 @@ export default function VideoMetricsPlayer({
     setTimeout(() => {
       setRerunsAvailable(prev => prev - 1);
       setIsRerunning(false);
-      toast.success("Analytics rerun complete!");
+      toast.success("统计面板已刷新");
     }, 1500);
   };
 
@@ -861,17 +844,17 @@ export default function VideoMetricsPlayer({
             <div>
               <CardTitle className="text-2xl font-bold">{currentVideo.title}</CardTitle>
               <CardDescription className="text-sm">
-                Duration: {formatTime(currentVideo.duration)} • {currentVideo.participants.length} participants
+                时长： {formatTime(currentVideo.duration)} • {currentVideo.participants.length} 位参与者
               </CardDescription>
             </div>
             <Badge variant="outline" className="flex items-center gap-1 text-sm">
-              <Users className="h-4 w-4" /> {currentVideo.participants.length} Speakers
+              <Users className="h-4 w-4" /> {currentVideo.participants.length} 位参与者
             </Badge>
           </div>
         </CardHeader>
 
         <CardContent className="p-1">
-          <div className="grid grid-cols-12 gap-4">
+          <div className="verification-columns grid grid-cols-12 gap-4">
             {/* Left Column - Timeline Indicators */}
             <div className="col-span-6">
               <TimelineLegend />
@@ -966,7 +949,7 @@ export default function VideoMetricsPlayer({
                     onClick={() => setShowQuestions(true)}
                   >
                     <MessageSquare className="h-4 w-4 mr-2" />
-                    Questions
+                    对话问答
                   </Button>
                   <Button 
                     variant={!showQuestions ? "default" : "outline"} 
@@ -974,7 +957,7 @@ export default function VideoMetricsPlayer({
                     onClick={() => setShowQuestions(false)}
                   >
                     <Users className="h-4 w-4 mr-2" />
-                    Transcript
+                    对话记录
                   </Button>
                 </div>
               </div>
@@ -986,7 +969,7 @@ export default function VideoMetricsPlayer({
                   <div className="h-full space-y-2 p-4 bg-gray-50/50">
                     {!currentVideo?.segments?.length ? (
                       <div className="text-center text-gray-500 py-4">
-                        No transcript segments available
+                        暂无对话记录
                       </div>
                     ) : (
                       currentVideo.segments.map((segment: AudioSegment, idx: number) => (
@@ -1010,7 +993,7 @@ export default function VideoMetricsPlayer({
             <div className="flex items-center mb-2">
               <h2 className="text-lg font-bold flex items-center">
                 <BarChart2 className="h-5 w-5 mr-2" />
-                Conversation Analytics
+                对话分析
               </h2>
               <div className="flex items-center ml-3">
                 <Button 
@@ -1025,9 +1008,9 @@ export default function VideoMetricsPlayer({
                   ) : (
                     <RotateCcw className="h-3.5 w-3.5" />
                   )}
-                  Rerun Analytics
+                  刷新统计
                   <Badge variant="secondary" className="ml-1 text-xs">
-                    {rerunsAvailable} left
+                    {rerunsAvailable} 次可用
                   </Badge>
                 </Button>
                 <TooltipProvider>
@@ -1038,7 +1021,7 @@ export default function VideoMetricsPlayer({
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
-                      <p>Rerunning analytics may improve metrics accuracy or detect additional patterns. Limited to {rerunsAvailable} reruns per conversation.</p>
+                      <p>当前刷新功能仅更新界面状态，不会重新计算指标。剩余 {rerunsAvailable} 次。</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

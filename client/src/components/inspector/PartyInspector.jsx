@@ -1,7 +1,10 @@
+import { authoringPartyDescription } from '../../libs/authoringChinese';
 import React, { useState, useEffect } from 'react';
 import { X, Trash, Plus, HelpCircle } from 'lucide-react';
-import useEditorStore, { getDefaultParties } from './store';
+import useEditorStore, { getDefaultParties as getOriginalDefaultParties } from './store';
 import { cleanupPartyConfigs } from '../avatarconfig/utils/partyHelpers';
+
+const getDefaultParties = () => getOriginalDefaultParties().map(party => ({ ...party, description: authoringPartyDescription(party.description) }));
 
 const PartyInspector = ({ party }) => {
   // Initialize parties state with an empty array
@@ -208,7 +211,7 @@ const PartyInspector = ({ party }) => {
                   id: party.id || '',
                   type: party.type || 'party',
                   name: currentPartyName,
-                  description: partyConfig.description || `Default description for ${currentPartyName}. Edit this to provide context about this party's role and behavior.`,
+                  description: partyConfig.description || `请补充“${currentPartyName}”在对话中的职责和交流方式。`,
                   speakingMode: partyConfig.speakingMode || 'random',
                   hasRepresentative: partyConfig.hasRepresentative || false,
                   enableBackchannel: partyConfig.enableBackchannel || false,
@@ -228,7 +231,7 @@ const PartyInspector = ({ party }) => {
                 return; // Skip the rest of the function
               } else {
                 // No party template found - create a default description
-                const defaultDesc = `Default description for ${currentPartyName}. Edit this to provide context about this party's role and behavior.`;
+                const defaultDesc = `请补充“${currentPartyName}”在对话中的职责和交流方式。`;
                 
                 // Add this party to our templates to persist the description
                 const updatedParties = [
@@ -283,7 +286,7 @@ const PartyInspector = ({ party }) => {
           id: party.id || '',
           type: party.type || 'party',
           name: savedConfig?.name || party.name || '',
-          description: savedConfig?.description || party.description || `Default description for ${savedConfig?.name || party.name || 'Party'}. Edit this to provide context about this party's role and behavior.`,
+          description: savedConfig?.description || party.description || `请补充“${savedConfig?.name || party.name || 'Party'}”在对话中的职责和交流方式。`,
           speakingMode: savedConfig?.speakingMode || party.speakingMode || 'random',
           hasRepresentative: savedConfig?.hasRepresentative !== undefined ? savedConfig?.hasRepresentative : party.hasRepresentative || false,
           enableBackchannel: savedConfig?.enableBackchannel !== undefined ? savedConfig?.enableBackchannel : party.enableBackchannel || false,
@@ -301,7 +304,7 @@ const PartyInspector = ({ party }) => {
           id: party.id || '',
           type: party.type || 'party',
           name: party.name || '',
-          description: party.description || `Default description for ${party.name || 'Party'}. Edit this to provide context about this party's role and behavior.`,
+          description: party.description || `请补充“${party.name || 'Party'}”在对话中的职责和交流方式。`,
           speakingMode: 'random',
           hasRepresentative: party.hasRepresentative || false,
           enableBackchannel: party.enableBackchannel || false,
@@ -445,7 +448,7 @@ const PartyInspector = ({ party }) => {
         ...prev,
         {
           name: box.party,
-          description: `Default description for ${box.party}. Edit this to provide context about this party's role and behavior.`,
+          description: `请补充“${box.party}”在对话中的职责和交流方式。`,
           speakingMode: 'random',
           hasRepresentative: false,
           enableBackchannel: false
@@ -490,7 +493,7 @@ const PartyInspector = ({ party }) => {
       setStoredParty(prev => ({
         ...prev,
         name: selectedPartyName,
-        description: existingParty.description || `Default description for ${selectedPartyName}. Edit this to provide context about this party's role and behavior.`,
+        description: existingParty.description || `请补充“${selectedPartyName}”在对话中的职责和交流方式。`,
         speakingMode: existingParty.speakingMode || 'random',
         hasRepresentative: existingParty.hasRepresentative || false,
         enableBackchannel: existingParty.enableBackchannel || false,
@@ -506,7 +509,7 @@ const PartyInspector = ({ party }) => {
       console.log(`handlePartySelect: Selected party "${selectedPartyName}" not found in templates, creating basic entry`);
       
       // Create default description for new parties
-      const defaultDescription = `Default description for ${selectedPartyName}. Edit this to provide context about this party's role and behavior.`;
+      const defaultDescription = `请补充“${selectedPartyName}”在对话中的职责和交流方式。`;
       
       // Just update the name and description for new parties
       setStoredParty(prev => ({
@@ -572,7 +575,7 @@ const PartyInspector = ({ party }) => {
       
       if (!existingParty) {
         // If not existing, add to parties with a default description
-        const defaultDescription = `Default description for ${trimmedPartyName}. Edit this to provide context about this party's role and behavior.`;
+        const defaultDescription = `请补充“${trimmedPartyName}”在对话中的职责和交流方式。`;
         
         const newParty = {
           name: trimmedPartyName,
@@ -604,7 +607,7 @@ const PartyInspector = ({ party }) => {
         setStoredParty(prev => ({
           ...prev,
           name: trimmedPartyName,
-          description: existingParty.description || `Default description for ${trimmedPartyName}. Edit this to provide context about this party's role and behavior.`,
+          description: existingParty.description || `请补充“${trimmedPartyName}”在对话中的职责和交流方式。`,
           speakingMode: existingParty.speakingMode ?? 'random',
           hasRepresentative: existingParty.hasRepresentative ?? false,
           enableBackchannel: existingParty.enableBackchannel ?? false,
@@ -681,7 +684,7 @@ const PartyInspector = ({ party }) => {
         window.dispatchEvent(new Event('storage')); // Trigger storage event for immediate detection
       } catch (error) {
         console.error('Error saving party configs to localStorage:', error);
-        alert('Could not save party configuration to localStorage. Your browser may have insufficient storage or private browsing mode enabled.');
+        alert("无法保存群组配置。浏览器存储可能不足，或正处于隐私浏览模式。");
       }
       
       // Also update the party template in localStorage if it exists
@@ -771,7 +774,7 @@ const PartyInspector = ({ party }) => {
       }, 2000);
     } catch (error) {
       console.error('Error submitting party form:', error);
-      alert('Error saving party configuration. Please try again.');
+      alert("保存群组配置失败，请重试。");
     }
   };
 
@@ -821,14 +824,14 @@ const PartyInspector = ({ party }) => {
         <div className="space-y-1">
           <div className="flex items-center justify-between">
             <label htmlFor="name" className="block text-xs font-medium theme-text-primary">
-              Party Assignment
+              群组分配
             </label>
             {!isCreatingParty ? (
               <button
                 type="button"
                 onClick={() => setIsCreatingParty(true)}
                 className="p-1 theme-bg-accent theme-text-inverse rounded-md hover:theme-bg-accent-hover transition-colors"
-                title="Create New Party"
+                title="创建新群组"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -842,10 +845,10 @@ const PartyInspector = ({ party }) => {
               onChange={(e) => handlePartySelect(e.target.value)}
               className="w-full p-1.5 theme-bg-input border theme-border theme-focus-ring text-sm theme-text-primary"
             >
-              <option value="">Select a Party</option>
+              <option value="">请选择群组</option>
               {parties.map(partyOption => (
                 <option key={partyOption.name} value={partyOption.name}>
-                  {partyOption.name}
+                  {authoringPartyLabel(partyOption.name)}
                 </option>
               ))}
             </select>
@@ -858,7 +861,7 @@ const PartyInspector = ({ party }) => {
                   type="text"
                   value={newPartyName}
                   onChange={(e) => setNewPartyName(e.target.value)}
-                  placeholder="New party name"
+                  placeholder="新群组名称"
                   className="flex-grow p-1 theme-bg-input border theme-border rounded-md text-sm theme-text-primary placeholder-gray-400"
                   autoFocus
                 />
@@ -868,7 +871,7 @@ const PartyInspector = ({ party }) => {
                   disabled={!newPartyName.trim()}
                   className="p-1 theme-bg-success theme-text-inverse rounded-md disabled:theme-bg-disabled disabled:theme-text-tertiary disabled:cursor-not-allowed transition-colors"
                 >
-                  <span className="text-xs">Create</span>
+                  <span className="text-xs">创建</span>
                 </button>
                 <button
                   type="button"
@@ -892,7 +895,7 @@ const PartyInspector = ({ party }) => {
           <div className="flex items-center">
             <div className={`w-2 h-2 rounded-full mr-1.5 ${storedParty.name ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
             <span className={`text-xs font-medium ${storedParty.name ? 'text-green-300' : 'text-yellow-300'}`}>
-              {storedParty.name ? `Party "${storedParty.name}" assigned` : 'No party assigned'}
+              {storedParty.name ? `Party "${storedParty.name}" assigned` : "尚未分配群组"}
             </span>
           </div>
         </div>
@@ -905,21 +908,21 @@ const PartyInspector = ({ party }) => {
               className={`px-2 py-1 border-b-2 text-xs font-medium ${activeTab === 'basic' ? 'theme-border-accent theme-text-accent' : 'border-transparent theme-text-tertiary hover:theme-text-secondary hover:theme-border'}`}
               onClick={() => setActiveTab('basic')}
             >
-              Basic
+              基本
             </button>
             <button 
               type="button"
               className={`px-2 py-1 border-b-2 text-xs font-medium ${activeTab === 'communication' ? 'theme-border-accent theme-text-accent' : 'border-transparent theme-text-tertiary hover:theme-text-secondary hover:theme-border'}`}
               onClick={() => setActiveTab('communication')}
             >
-              Party Communication
+              群组交流
             </button>
             <button 
               type="button"
               className={`px-2 py-1 border-b-2 text-xs font-medium ${activeTab === 'participants' ? 'theme-border-accent theme-text-accent' : 'border-transparent theme-text-tertiary hover:theme-text-secondary hover:theme-border'}`}
               onClick={() => setActiveTab('participants')}
             >
-              Participants
+              参与者
             </button>
           </nav>
           
@@ -928,29 +931,29 @@ const PartyInspector = ({ party }) => {
             {activeTab === 'basic' && (
               <div className="theme-bg-secondary rounded-md border theme-border overflow-hidden">
                 <div className="theme-bg-panel px-3 py-1.5 border-b theme-border">
-                  <h3 className="text-xs font-medium theme-text-primary">Basic Configuration</h3>
+                  <h3 className="text-xs font-medium theme-text-primary">基本配置</h3>
                 </div>
                 <div className="p-2 space-y-2">
                   <div className="space-y-1">
                     <label htmlFor="description" className="block text-xs font-medium theme-text-secondary">
-                      Description
-                      <TooltipIcon text="A brief description of the party's purpose and role in the conversation" />
+                      说明
+                      <TooltipIcon text="简要说明群组在对话中的目标与职责" />
                     </label>
                     <textarea
                       id="description"
                       name="description"
-                      value={storedParty.description}
+                      value={authoringPartyDescription(storedParty.description)}
                       onChange={handleInputChange}
                       rows={2}
                       className="w-full p-1.5 theme-bg-input border theme-border rounded-md theme-focus-ring text-xs theme-text-primary"
-                      placeholder="Enter party description"
+                      placeholder="请输入群组说明"
                     />
                   </div>
 
                   <div className="space-y-1">
                     <label htmlFor="speakingMode" className="block text-xs font-medium theme-text-secondary">
-                      Speaking Mode
-                      <TooltipIcon text="Controls who can speak within this party. 'All' allows everyone to speak, 'Representative' restricts to one speaker, 'Subset' allows a specific number to speak." />
+                      发言方式
+                      <TooltipIcon text="设置组内发言成员：“全体成员”允许所有人发言；“仅代表”由代表发言；“部分成员”选择指定人数。" />
                     </label>
                     <select
                       id="speakingMode"
@@ -959,10 +962,10 @@ const PartyInspector = ({ party }) => {
                       onChange={handleInputChange}
                       className="w-full p-1.5 theme-bg-input border theme-border rounded-md theme-focus-ring text-xs theme-text-primary"
                     >
-                      <option value="random">Random Mode</option>
-                      <option value="all">All Members Speak</option>
-                      <option value="representative">Representative Only</option>
-                      <option value="subset">Subset of Members</option>
+                      <option value="random">随机选择</option>
+                      <option value="all">全体成员</option>
+                      <option value="representative">仅代表发言</option>
+                      <option value="subset">部分成员</option>
                     </select>
                   </div>
 
@@ -970,8 +973,8 @@ const PartyInspector = ({ party }) => {
                   {storedParty.speakingMode === 'representative' && (
                     <div className="space-y-1 ml-4 p-2 theme-bg-accent-secondary rounded-md border theme-border-accent">
                       <label htmlFor="representativeSpeaker" className="block text-xs font-medium theme-text-secondary">
-                        Representative Speaker
-                        <TooltipIcon text="The single avatar that will speak on behalf of the entire party" />
+                        群组代表
+                        <TooltipIcon text="由这位角色代表整个群组发言" />
                       </label>
                       <select
                         id="representativeSpeaker"
@@ -980,7 +983,7 @@ const PartyInspector = ({ party }) => {
                         onChange={handleInputChange}
                         className="w-full p-1.5 theme-bg-input border theme-border rounded-md theme-focus-ring text-xs theme-text-primary"
                       >
-                        <option value="">Select a representative</option>
+                        <option value="">请选择群组代表</option>
                         {boxAvatars.map(avatar => (
                           <option key={avatar.id} value={avatar.id}>
                             {avatar.name}
@@ -989,7 +992,7 @@ const PartyInspector = ({ party }) => {
                       </select>
                       {boxAvatars.length === 0 && (
                         <p className="text-xs text-yellow-400 mt-1">
-                          No avatars available.
+                          暂无角色。
                         </p>
                       )}
                     </div>
@@ -999,8 +1002,8 @@ const PartyInspector = ({ party }) => {
                   {storedParty.speakingMode === 'subset' && (
                     <div className="space-y-1 ml-4 p-2 theme-bg-accent-secondary rounded-md border theme-border-accent">
                       <label htmlFor="subsetSize" className="block text-xs font-medium theme-text-secondary">
-                        Subset Size
-                        <TooltipIcon text="The number of party members that will be randomly selected to speak" />
+                        发言人数
+                        <TooltipIcon text="每次随机选择的组内发言人数" />
                       </label>
                       <input
                         type="number"
@@ -1024,7 +1027,7 @@ const PartyInspector = ({ party }) => {
                 {/* Turn Taking Section */}
                 <div className="theme-bg-secondary rounded-md border theme-border overflow-hidden">
                   <div className="theme-bg-panel px-3 py-1.5 border-b theme-border">
-                    <h3 className="text-xs font-medium theme-text-primary">Verbal Communication (Turn Taking)</h3>
+                    <h3 className="text-xs font-medium theme-text-primary">语言交流（轮次规则）</h3>
                   </div>
                   <div className="p-2 space-y-2">
                     <div className="p-2 theme-bg-info-light border theme-border-info rounded mb-2">
@@ -1032,17 +1035,17 @@ const PartyInspector = ({ party }) => {
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        Some party communication settings are now managed globally.
+                        部分群组交流设置由全局群组管理统一控制。
                       </p>
                       <p className="text-xs theme-text-tertiary mt-1">
-                        Click the "Party Settings" button in the Scene Hierarchy to access the global party manager.
+                        点击场景层级中的“群组设置”，打开全局群组管理。
                       </p>
                     </div>
                     
                     <div className="space-y-1">
                       <label htmlFor="partyTurnMode" className="block text-xs font-medium theme-text-secondary">
-                        Party Turn Mode
-                        <TooltipIcon text="Controls how speaking turns are managed within the party. 'Free Discussion' allows spontaneous speaking, 'Round Robin' follows a sequence, 'Moderated' requires permission." />
+                        群组轮次规则
+                        <TooltipIcon text="设置组内轮次：自由讨论允许自主发言；轮流发言按顺序进行；主持模式需由主持人安排。" />
                       </label>
                       <select
                         id="partyTurnMode"
@@ -1051,9 +1054,9 @@ const PartyInspector = ({ party }) => {
                         onChange={handleInputChange}
                         className="w-full p-1.5 theme-bg-input border theme-border rounded-md theme-focus-ring text-xs theme-text-primary"
                       >
-                        <option value="free">Free Discussion</option>
-                        <option value="round-robin">Round Robin</option>
-                        <option value="moderated">Moderated (Hand Raising)</option>
+                        <option value="free">自由讨论</option>
+                        <option value="round-robin">轮流发言</option>
+                        <option value="moderated">主持模式（举手申请）</option>
                       </select>
                     </div>
 
@@ -1070,12 +1073,12 @@ const PartyInspector = ({ party }) => {
                             className="h-3 w-3 theme-text-accent theme-focus-ring theme-border rounded"
                           />
                           <label htmlFor="isModeratorParty" className="ml-2 block text-xs font-medium theme-text-secondary">
-                            This party is the moderator
-                            <TooltipIcon text="Designates this party as the one that approves raised hands in moderated discussions. Only one party can be the moderator." />
+                            此群组担任主持
+                            <TooltipIcon text="由此群组审核主持模式下的举手申请，只能设置一个主持群组。" />
                           </label>
                         </div>
                         <p className="text-xs theme-text-tertiary mt-1 ml-5">
-                          Only one party can be the moderator.
+                          只能设置一个主持群组。
                         </p>
                       </div>
                     )}
@@ -1085,7 +1088,7 @@ const PartyInspector = ({ party }) => {
                 {/* Non-Verbal Communication Section */}
                 <div className="theme-bg-secondary rounded-md border theme-border overflow-hidden">
                   <div className="theme-bg-panel px-3 py-1.5 border-b theme-border">
-                    <h3 className="text-xs font-medium theme-text-primary">Non-Verbal Communication</h3>
+                    <h3 className="text-xs font-medium theme-text-primary">非语言反馈</h3>
                   </div>
                   <div className="p-2">
                     <div className="flex items-center">
@@ -1098,12 +1101,12 @@ const PartyInspector = ({ party }) => {
                         className="h-3 w-3 theme-text-accent theme-focus-ring theme-border rounded"
                       />
                       <label htmlFor="enableBackchannel" className="ml-2 block text-xs font-medium theme-text-secondary">
-                        Enable Backchannel
-                        <TooltipIcon text="Allows party members to communicate privately with each other without the rest of the conversation hearing them" />
+                        启用非语言反馈
+                        <TooltipIcon text="允许组内成员进行不打断主对话的反馈互动" />
                       </label>
                     </div>
                     <p className="text-xs theme-text-tertiary ml-5">
-                      Allow party members to communicate privately
+                      允许组内成员进行反馈互动
                     </p>
                   </div>
                 </div>
@@ -1115,8 +1118,8 @@ const PartyInspector = ({ party }) => {
               <div className="bg-gray-800 rounded-md border border-gray-700 overflow-hidden">
                 <div className="bg-gray-700 px-3 py-1.5 border-b border-gray-600 flex justify-between items-center">
                   <h3 className="text-xs font-medium text-gray-200">
-                    Participants
-                    <TooltipIcon text="Avatars assigned to this party. These avatars will behave according to the party's configuration." />
+                    参与者
+                    <TooltipIcon text="属于此群组的角色将遵循该群组的交流规则。" />
                   </h3>
                   <button 
                     type="button"
@@ -1125,9 +1128,9 @@ const PartyInspector = ({ party }) => {
                       setIsLoadingAvatars(true);
                       setTimeout(() => findBoxAndExtractAvatars(party.id, "manual-refresh"), 100);
                     }}
-                    title="Refresh avatar list"
+                    title="刷新角色列表"
                   >
-                    ↻ Refresh
+                    ↻ 刷新
                   </button>
                 </div>
                 
@@ -1138,12 +1141,12 @@ const PartyInspector = ({ party }) => {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Loading avatars...
+                      正在加载角色…
                     </div>
                   ) : boxAvatars.length > 0 ? (
                     <div>
                       <div className="mb-1 text-xs text-gray-400">
-                        The following avatars are assigned to this party:
+                        以下角色已分配到此群组：
                       </div>
                       <ul className="grid grid-cols-1 md:grid-cols-2 gap-1">
                         {boxAvatars.map((avatar, index) => (
@@ -1155,7 +1158,7 @@ const PartyInspector = ({ party }) => {
                             <div className="flex-grow overflow-hidden">
                               <div className="font-medium text-xs text-gray-200 truncate">{avatar.name}</div>
                               <div className="text-xs text-gray-400 truncate">
-                                {avatar.avatarData?.voice || 'No voice set'}
+                                {avatar.avatarData?.voice || "尚未设置声音"}
                               </div>
                             </div>
                           </li>
@@ -1169,13 +1172,13 @@ const PartyInspector = ({ party }) => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                       </div>
-                      <h3 className="text-gray-200 text-xs font-medium">No avatars found</h3>
+                      <h3 className="text-gray-200 text-xs font-medium">未找到角色</h3>
                       <button 
                         type="button"
                         className="mt-1 px-2 py-1 bg-blue-600 text-gray-200 text-xs rounded hover:bg-blue-700 transition-colors"
                         onClick={() => findBoxAndExtractAvatars(party.id, "try-again-button")}
                       >
-                        Refresh
+                        刷新
                       </button>
                     </div>
                   )}
@@ -1188,14 +1191,14 @@ const PartyInspector = ({ party }) => {
         {/* Action Button - more compact */}
         <div className="sticky bottom-0 bg-gray-800 border-t border-gray-700 py-2 px-2 -mx-2 mt-2 flex justify-between items-center">
           <div className="text-xs text-gray-400">
-            {storedParty.name ? 'Ready to apply' : 'Choose a party'}
+            {storedParty.name ? "可应用修改" : "请选择群组"}
           </div>
           <button
             type="submit"
             disabled={!storedParty.name}
             className="px-3 py-1 bg-blue-600 text-gray-200 text-xs rounded-md hover:bg-blue-700 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1 focus:ring-offset-gray-800 disabled:bg-gray-600 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
           >
-            Apply Changes
+            应用修改
           </button>
         </div>
       </form>
@@ -1204,14 +1207,14 @@ const PartyInspector = ({ party }) => {
       <div className="bg-gray-800 border-t border-gray-700 p-2">
         <div className="flex items-center justify-between cursor-pointer" 
              onClick={() => document.getElementById('debugSection').classList.toggle('hidden')}>
-          <h3 className="text-xs font-medium text-gray-400">Advanced Options</h3>
+          <h3 className="text-xs font-medium text-gray-400">高级选项</h3>
           <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </div>
         
         <div id="debugSection" className="hidden mt-1 space-y-1">
-          <div className="text-xs text-gray-400">Box ID: {party?.id}</div>
+          <div className="text-xs text-gray-400">容器编号： {party?.id}</div>
           <div className="flex flex-wrap gap-1">
             <button
               onClick={() => {
@@ -1225,19 +1228,19 @@ const PartyInspector = ({ party }) => {
                     const box = currentActiveScene.boxes.find(box => box.id === party.id);
                     console.log('Box in scene:', box);
                     console.log('Party assignment:', box?.party);
-                    alert(`Current party assignment for box ${party.id}: ${box?.party || 'none'}`);
+                    alert(`此容器当前所属的群组 ${party.id}: ${box?.party || 'none'}`);
                   }
                 }
               }}
               className="text-xs text-blue-400 hover:underline bg-blue-900 px-1.5 py-0.5 rounded"
             >
-              Debug Party Assignment
+              查看群组分配信息
             </button>
             
             <button
               onClick={() => {
                 if (!scenes || !activeSceneId || !storedParty.name) {
-                  alert('Cannot force update: Missing scene or party name');
+                  alert("无法强制更新：缺少场景或群组名称");
                   return;
                 }
                 
@@ -1254,38 +1257,38 @@ const PartyInspector = ({ party }) => {
                     
                     window.editorStore.getState().setScenes(updatedScenes);
                     
-                    alert(`Force updated party to "${storedParty.name}" - Try refreshing the hierarchy view now`);
+                    alert(`已强制将群组更新为“${storedParty.name}”，请刷新场景层级查看`);
                   } else {
-                    alert(`Box with ID ${party.id} not found in active scene`);
+                    alert(`容器编号 ${party.id} 未在当前场景中找到`);
                   }
                 }
               }}
               className="text-xs bg-blue-700 text-gray-200 px-1.5 py-0.5 rounded hover:bg-blue-600"
             >
-              Force Update Party
+              强制更新群组
             </button>
             
             <button
               onClick={handleCleanupPartyConfigs}
               className="text-xs bg-red-700 text-gray-200 px-1.5 py-0.5 rounded hover:bg-red-600"
             >
-              Reset Party Configs
+              重置群组配置
             </button>
           </div>
       
           {/* Configuration manager */}
           <div className="mt-1 pt-1 border-t border-gray-700">
-            <h4 className="text-xs font-medium text-gray-400 mb-1">Party Configuration Manager</h4>
+            <h4 className="text-xs font-medium text-gray-400 mb-1">群组配置管理</h4>
             <button
               onClick={() => {
-                if (confirm('Are you sure you want to clear all saved party configurations?')) {
+                if (confirm("确定清除所有已保存的群组配置吗？")) {
                   localStorage.removeItem('partyConfigs');
-                  alert('All party configurations have been cleared!');
+                  alert("已清除全部群组配置。");
                 }
               }}
               className="text-xs bg-red-900 hover:bg-red-800 text-red-300 px-1.5 py-0.5 rounded"
             >
-              Clear All Saved Configurations
+              清除全部已保存配置
             </button>
           </div>
         </div>

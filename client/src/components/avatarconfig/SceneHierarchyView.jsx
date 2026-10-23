@@ -44,15 +44,15 @@ const SceneHierarchyView = ({
       currentScene.boxes.forEach(box => {
         // Enhanced party assignment logging
         const partyValue = box.party || 'none';
-        console.log(`Box ${box.id} party assignment: "${partyValue}" (type: ${typeof box.party})`);
+        console.log(`容器 ${box.id} party assignment: "${partyValue}" (type: ${typeof box.party})`);
         
         if (box.elements) {
-          console.log(`Box ${box.id} has ${box.elements.length} elements:`);
+          console.log(`容器 ${box.id} has ${box.elements.length} elements:`);
           box.elements.forEach(el => {
             console.log(`- Element ${el.id}, type: ${el.elementType}, content: ${Boolean(el.content)}, contentType: ${el.contentType || 'none'}, contentName: ${el.contentName || 'none'}`);
           });
         } else {
-          console.log(`Box ${box.id} has no elements array`);
+          console.log(`容器 ${box.id} has no elements array`);
           if (box.avatarData) {
             console.log(`- Has direct avatarData: ${Boolean(box.avatarData)}`);
           }
@@ -80,7 +80,7 @@ const SceneHierarchyView = ({
         // Always include boxes without a party in the unassigned section,
         // even if they don't have avatars yet
         unassigned.push(box);
-        console.log(`Box ${box.id} remains unassigned (party value: ${JSON.stringify(box.party)})`);
+        console.log(`容器 ${box.id} remains unassigned (party value: ${JSON.stringify(box.party)})`);
       }
     });
   
@@ -282,12 +282,12 @@ const handleElementClick = (e, boxId, elementId) => {
       <div className="flex items-center justify-between group">
         <div className="flex items-center overflow-hidden">
           <Square className="w-3.5 h-3.5 mr-1.5 flex-shrink-0 theme-text-accent-light" />
-          <span className="theme-text-primary font-medium truncate">Box {getBoxNumber(box.id)}</span>
+          <span className="theme-text-primary font-medium truncate">容器 {getBoxNumber(box.id)}</span>
         </div>
         <button
           onClick={(e) => handleBringToFront(e, box.id)}
           className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:theme-bg-hover rounded flex-shrink-0"
-          title="Bring to front"
+          title="置于顶层"
         >
           <ArrowUpToLine className="w-3.5 h-3.5 theme-text-tertiary hover:theme-text-primary" />
         </button>
@@ -344,12 +344,12 @@ const handleElementClick = (e, boxId, elementId) => {
           <div className="flex items-center justify-between group">
             <div className="flex items-center overflow-hidden">
               <Square className="w-3.5 h-3.5 mr-1.5 flex-shrink-0 theme-text-accent-light" />
-              <span className="theme-text-secondary truncate">Box {getBoxNumber(box.id)}</span>
+              <span className="theme-text-secondary truncate">容器 {getBoxNumber(box.id)}</span>
             </div>
             <button
               onClick={(e) => handleBringToFront(e, box.id)}
               className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:theme-bg-hover rounded flex-shrink-0"
-              title="Bring to front"
+              title="置于顶层"
             >
               <ArrowUpToLine className="w-3.5 h-3.5 theme-text-tertiary hover:theme-text-primary" />
             </button>
@@ -384,7 +384,7 @@ const handleElementClick = (e, boxId, elementId) => {
           <button
             onClick={(e) => handleBringToFront(e, box.id)}
             className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:theme-bg-hover rounded flex-shrink-0"
-            title="Bring to front"
+            title="置于顶层"
           >
             <ArrowUpToLine className="w-3.5 h-3.5 theme-text-tertiary hover:theme-text-primary" />
           </button>
@@ -396,12 +396,12 @@ const handleElementClick = (e, boxId, elementId) => {
       <div className="flex items-center justify-between group">
         <div className="flex items-center text-xs overflow-hidden">
           <Square className="w-3.5 h-3.5 mr-1.5 flex-shrink-0 theme-text-tertiary" />
-          <span className="theme-text-tertiary truncate">Empty Box {getBoxNumber(box.id)}</span>
+          <span className="theme-text-tertiary truncate">空容器 {getBoxNumber(box.id)}</span>
         </div>
         <button
           onClick={(e) => handleBringToFront(e, box.id)}
           className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:theme-bg-hover rounded flex-shrink-0"
-          title="Bring to front"
+          title="置于顶层"
         >
           <ArrowUpToLine className="w-3.5 h-3.5 theme-text-tertiary hover:theme-text-primary" />
         </button>
@@ -414,9 +414,9 @@ const handleElementClick = (e, boxId, elementId) => {
     return (
       <div className="p-4 theme-text-tertiary text-center theme-bg-secondary rounded-lg theme-border">
         <Users className="w-8 h-8 mx-auto mb-2 theme-text-tertiary opacity-50" />
-        <p>Waiting for scene to load...</p>
+        <p>正在等待场景加载…</p>
         <p className="text-xs mt-2 theme-text-tertiary">
-          No active scene is currently selected
+          当前未选择场景
         </p>
       </div>
     );
@@ -427,15 +427,15 @@ const handleElementClick = (e, boxId, elementId) => {
       <h3 className="font-semibold mb-3 px-3 py-2 theme-bg-tertiary rounded-lg theme-text-primary flex items-center justify-between">
         <div className="flex items-center">
           <Users className="w-4 h-4 mr-2 theme-text-accent" />
-          <span>Hierarchy</span>
+          <span>场景层级</span>
         </div>
         <button 
           onClick={openGlobalPartyInspector}
           className="px-2 py-1.5 text-white rounded-md transition-all duration-200 flex items-center text-xs font-medium shadow-sm hover:shadow-md focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-offset-neutral-900 focus:ring-white/30 bg-gradient-to-br from-sky-600 to-blue-700 hover:from-sky-500 hover:to-sky-600 transform hover:scale-105 active:scale-95"
-          title="Manage Party Settings"
+          title="管理群组设置"
         >
           <Settings className="w-3.5 h-3.5 mr-1" />
-          <span>Settings</span>
+          <span>设置</span>
         </button>
       </h3>
       
@@ -486,7 +486,7 @@ const handleElementClick = (e, boxId, elementId) => {
         <div className="rounded-md theme-bg-tertiary theme-border-light">
           <div className="mb-1 p-2 font-medium theme-text-primary flex items-center overflow-hidden">
             <User className="w-4 h-4 mr-1.5 flex-shrink-0 theme-text-tertiary" />
-            <span className="truncate">Unassigned Participants</span>
+            <span className="truncate">未分组参与者</span>
             <span className="ml-2 text-xs px-2 py-0.5 theme-bg-tertiary theme-border-light rounded-full theme-text-tertiary flex-shrink-0">
               {organizedElements.unassigned.length}
             </span>
@@ -513,7 +513,7 @@ const handleElementClick = (e, boxId, elementId) => {
        organizedElements.unassigned.length === 0 && (
         <div className="p-6 theme-text-tertiary text-center theme-bg-tertiary theme-border-light">
           <Users className="w-8 h-8 mx-auto mb-2 theme-text-tertiary" />
-          <p>No avatars in the scene</p>
+          <p>场景中暂无角色</p>
         </div>
       )}
     </div>

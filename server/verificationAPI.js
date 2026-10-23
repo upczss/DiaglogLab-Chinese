@@ -9,11 +9,11 @@ const extractJson = (text) => {
   // Check if the text is wrapped in markdown code blocks
   const jsonRegex = /```(?:json)?\s*(\{[\s\S]*\})\s*```/;
   const match = text.match(jsonRegex);
-  
+
   if (match && match[1]) {
     return match[1].trim();
   }
-  
+
   return text.trim();
 };
 
@@ -28,10 +28,10 @@ export async function calculateCoherenceAndSentiment(segments, llmOptions = {}) 
   }
 
   // Filter out system messages and prepare conversation text
-  const nonSystemSegments = segments.filter(segment => 
+  const nonSystemSegments = segments.filter(segment =>
     segment.message?.message && !segment.message.isSystemMessage
   );
-  
+
   const conversationText = nonSystemSegments
     .map(segment => `${segment.avatarName}: ${segment.message.message}`)
     .join('\n');
@@ -74,16 +74,16 @@ export async function calculateCoherenceAndSentiment(segments, llmOptions = {}) 
 
   try {
     // Get response from LLM
-    const response = await llmProvider.generateText(prompt, { 
+    const response = await llmProvider.generateText(prompt, {
       requestJson: true,
       temperature: 0.2,
       ...llmOptions
     });
-    
+
     // Extract JSON from markdown code blocks if needed, then parse
     const jsonText = extractJson(response);
     const analysisResult = JSON.parse(jsonText);
-    
+
     // Create a mapping of participant names to IDs
     const nameToIdMap = {};
     nonSystemSegments.forEach(segment => {
@@ -91,7 +91,7 @@ export async function calculateCoherenceAndSentiment(segments, llmOptions = {}) 
         nameToIdMap[segment.avatarName] = segment.avatarId;
       }
     });
-    
+
     // Convert name-based sentiment to ID-based sentiment
     const idBasedSentiment = {};
     if (analysisResult.sentiment) {
@@ -100,12 +100,12 @@ export async function calculateCoherenceAndSentiment(segments, llmOptions = {}) 
         idBasedSentiment[id] = score;
       });
     }
-    
+
     // Validate and ensure all required fields are present
     const coherenceScore = Number(analysisResult.coherenceScore) || 0;
     const overallSentiment = Number(analysisResult.overallSentiment) || 0;
     console.log(`Analysis results: coherence=${coherenceScore}, overall sentiment=${overallSentiment}, individual sentiments for ${Object.keys(idBasedSentiment).length} participants`);
-    
+
     // Format all numerical values to 2 decimal places
     const formattedCoherenceScore = parseFloat(Math.max(0, Math.min(1, coherenceScore)).toFixed(2));
     const formattedOverallSentiment = parseFloat(Math.max(-1, Math.min(1, overallSentiment)).toFixed(2));
@@ -115,7 +115,7 @@ export async function calculateCoherenceAndSentiment(segments, llmOptions = {}) 
     Object.entries(idBasedSentiment).forEach(([id, score]) => {
       formattedSentiment[id] = parseFloat(parseFloat(score).toFixed(2));
     });
-    
+
     // Return the formatted result
     return {
       coherenceScore: formattedCoherenceScore,
@@ -124,7 +124,7 @@ export async function calculateCoherenceAndSentiment(segments, llmOptions = {}) 
     };
   } catch (error) {
     console.error('Error in calculateCoherenceAndSentiment:', error);
-    
+
     // Try to extract coherence score if possible
     if (error instanceof SyntaxError && error.message.includes('JSON')) {
       try {
@@ -132,7 +132,7 @@ export async function calculateCoherenceAndSentiment(segments, llmOptions = {}) 
         // Extract just the coherence score using regex if possible
         const coherenceMatch = response.match(/coherence(?:\s+)?(?:score)?(?:\s*)?(?::|=|is)(?:\s*)?([0-9.]+)/i);
         const coherenceScore = coherenceMatch ? parseFloat(coherenceMatch[1]) : 0.5;
-        
+
         return {
           coherenceScore: parseFloat(Math.max(0, Math.min(1, coherenceScore)).toFixed(2)),
           overallSentiment: 0,
@@ -142,7 +142,7 @@ export async function calculateCoherenceAndSentiment(segments, llmOptions = {}) 
         console.error('Error in fallback parsing:', fallbackError);
       }
     }
-    
+
     // Default fallback
     return {
       coherenceScore: 0,
@@ -165,12 +165,12 @@ export async function askAgentQuestions(verificationData, question, llmOptions =
 
   // Extract conversation segments
   const segments = verificationData.segments || [];
-  
+
   // Filter out system messages and prepare conversation text
-  const nonSystemSegments = segments.filter(segment => 
+  const nonSystemSegments = segments.filter(segment =>
     segment.message?.message && !segment.message.isSystemMessage
   );
-  
+
   const conversationText = nonSystemSegments
     .map(segment => `${segment.avatarName}: ${segment.message.message}`)
     .join('\n');
@@ -180,7 +180,7 @@ export async function askAgentQuestions(verificationData, question, llmOptions =
   }
 
   // Prepare prompt for LLM
-  const prompt = `You are an insightful conversation analyst. You have access to the transcript of a conversation, along with 
+  const prompt = `You are an insightful conversation analyst. You have access to the transcript of a conversation, along with
   metrics about it such as participation time, turn-taking frequency, speaking balance, and sentiment.
 
   Here's the conversation transcript:
@@ -197,7 +197,9 @@ export async function askAgentQuestions(verificationData, question, llmOptions =
 
   Based on this information, please answer the following question as accurately and insightfully as possible, but be concise and to the point:
 
-  Question: ${question}`;
+  Question: ${question}
+
+  请始终使用简体中文回答，保留参与者姓名及必要的专有名称。请区分对话中可直接观察的事实和基于指标的推测，不要附加英文译文。`;
 
   try {
     // Get response from the specified LLM
@@ -222,7 +224,7 @@ export function setupVerificationRoutes(app) {
   app.post('/api/verification/calculate-coherence', async (req, res) => {
     try {
       const { segments } = req.body;
-      
+
       if (!segments || !Array.isArray(segments)) {
         return res.status(400).json({ error: 'Invalid segments data' });
       }
@@ -235,7 +237,7 @@ export function setupVerificationRoutes(app) {
       res.json(result);
     } catch (error) {
       console.error('Error calculating conversation analysis:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to analyze conversation',
         coherenceScore: 0,
         overallSentiment: 0,
@@ -248,9 +250,9 @@ export function setupVerificationRoutes(app) {
   app.post('/api/verification/ask-agent', async (req, res) => {
     try {
       const { verificationData, question, model = 'gpt-4' } = req.body;
-      
+
       if (!verificationData || !question) {
-        return res.status(400).json({ error: 'Missing required parameters' });
+        return res.status(400).json({ error: '缺少对话数据或问题' });
       }
 
       const llmOptions = {
@@ -262,10 +264,10 @@ export function setupVerificationRoutes(app) {
       res.json(result);
     } catch (error) {
       console.error('Error asking agent questions:', error);
-      res.status(500).json({ 
-        error: 'Failed to get answer from LLM',
-        answer: 'Sorry, I was unable to process your question at this time.'
+      res.status(500).json({
+        error: '获取模型回答失败，请检查模型服务配置后重试',
+        answer: '暂时无法分析这个问题，请稍后重试。'
       });
     }
   });
-} 
+}

@@ -143,7 +143,7 @@ export const deleteElement = (boxId, elementId, activeSceneIndex, scenes, setSce
   // Don't allow deletion if there's only one element left
   if (elements.length <= 1) {
     alert(
-      "Cannot delete the only element in a box. You can delete the entire box instead.",
+      "容器中至少需要一个元素。如需移除，请删除整个容器。",
     );
     return;
   }

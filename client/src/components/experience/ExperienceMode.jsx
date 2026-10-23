@@ -1,3 +1,4 @@
+import { createLineDecoder } from '../../libs/lineDecoder';
 import React, { useState, useEffect, useRef } from 'react';
 import useEditorStore from '../inspector/store';
 import ExperienceSceneSetupModal from './ExperienceSceneSetupModal';
@@ -754,7 +755,7 @@ const ExperienceMode = () => {
       setIsPlaying(true);
       
       const reader = response.body.getReader();
-      const decoder = new TextDecoder();
+      const decoder = createLineDecoder();
       
       console.log("Reading server response stream...");
       

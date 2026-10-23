@@ -1,3 +1,4 @@
+import { chineseSystemMessage, interventionLabels } from '../../libs/chatChinese';
 import React, { useState, useEffect, useRef } from 'react';
 import { Users } from 'lucide-react';
 import { AudioSegment } from '../nodeeditor/utils/NodeEditorUtils';
@@ -607,7 +608,7 @@ const MessageDisplay: React.FC<MessageDisplayProps> = ({
             if (message.type === 'snippet_switch') {
               return (
                 <div className="flex items-center gap-2 py-1 border-l-2 border-blue-400 pl-2">
-                  <span className="text-blue-400 text-xs font-medium">New Snippet</span>
+                  <span className="text-blue-400 text-xs font-medium">新对话片段</span>
                   <span className="flex-1"></span>
                   <span className="text-[10px] text-blue-500 bg-blue-100 px-1.5 py-0.5 rounded">
                     {text.trim()}
@@ -617,7 +618,7 @@ const MessageDisplay: React.FC<MessageDisplayProps> = ({
             } else if (message.type === 'scene_switch') {
               return (
                 <div className="flex items-center gap-2 py-1 border-l-2 border-green-400 pl-2">
-                  <span className="text-green-400 text-xs font-medium">New Scene</span>
+                  <span className="text-green-400 text-xs font-medium">新场景</span>
                   <span className="flex-1"></span>
                   <span className="text-[10px] text-green-500 bg-green-100 px-1.5 py-0.5 rounded">
                     {text.trim()}
@@ -627,29 +628,8 @@ const MessageDisplay: React.FC<MessageDisplayProps> = ({
             }
           }
           
-          // Original code for other system messages
-          if (isSystemMessage && text.includes("raised their hand")) {
-            const partyMention = messageParty ? ` (${messageParty})` : '';
-            return text.replace(/has raised their hand|raised their hand/, `✋ raised hand${partyMention}`);
-          }
-          if (isSystemMessage && text.includes("approved") && text.includes("to speak")) {
-            const partyMention = messageParty ? ` (${messageParty})` : '';
-            return text.replace(/has been approved|was approved/, `✓ approved${partyMention}`);
-          }
-          if (isSystemMessage && (text.includes("started an impromptu discussion phase") || message.isImpromptuPhaseStart)) {
-            // Use the message's derailMode property directly
-            const mode = message.derailMode || (text.includes("different topic") ? "drift" : "extend");
-            console.log(`System message has derailMode: ${message.derailMode}, content derailMode: ${text.includes("different topic") ? "drift" : "extend"}, using: ${mode}, isImpromptuPhaseStart: ${message.isImpromptuPhaseStart}`);
-            const modeIcon = mode === "drift" ? "🔄" : mode === "extend" ? "🔍" : mode === "question" ? "💭" : mode === "emotional" ? "😢" : mode;
-            const modeText = mode === "drift" ? "TOPIC SHIFT" : mode === "extend" ? "PERSPECTIVE SHIFT" : mode === "question" ? "QUESTION" : mode === "emotional" ? "EMOTIONAL" : mode;
-            return `${modeIcon}  ★ ${text.replace(/has started an impromptu discussion phase/, `STARTED IMPROMPTU PHASE (${modeText})`)} ★`;
-          }
-          if (isSystemMessage && text.includes("The impromptu discussion phase has ended")) {
-            return `✓  ★ ${text.replace(/The impromptu discussion phase has ended. Returning to the regular conversation./, 'IMPROMPTU PHASE ENDED')} ★`;
-          }
-          
-          // For non-system messages, just return the text
-          return isSystemMessage ? text : text;
+          return chineseSystemMessage(text, message);
+
         };
 
         // Determine if we need to add spacers for impromptu phases
@@ -697,16 +677,12 @@ const MessageDisplay: React.FC<MessageDisplayProps> = ({
                       {participant}
                       {isFromHumanUser && (
                         <span className="ml-1 text-[9px] bg-blue-700 text-white px-1 rounded">
-                          HUMAN
+                          人类代理
                         </span>
                       )}
                       {isDerailing && (
                         <span className="ml-1 text-[9px] bg-pink-700 text-white px-1 rounded">
-                          {derailMode === 'drift' ? 'TOPIC SHIFT' : 
-                          derailMode === 'extend' ? 'PERSPECTIVE SHIFT' :
-                          derailMode === 'question' ? 'QUESTION' :
-                          derailMode === 'emotional' ? 'EMOTIONAL' :
-                          derailMode}
+                          {interventionLabels[derailMode] || '临时介入'}
                         </span>
                       )}
                     </div>
@@ -831,28 +807,28 @@ const MessageDisplay: React.FC<MessageDisplayProps> = ({
         );
       })}
 
-      {/* Only show export dialog when not in human-control mode */}
-      {showExportDialog && conversationMode !== 'human-control' && (
+      {/* Export completed conversations in every mode. */}
+      {showExportDialog && !messages.some(message => message.needsApproval) && (
         <div className="flex flex-col gap-2 p-4 theme-bg-secondary rounded-lg theme-border theme-border mx-2 mb-2 max-h-[200px]">
-          <div className="text-sm font-medium theme-text-primary">Export Conversation</div>
+          <div className="text-sm font-medium theme-text-primary">导出对话</div>
           <p className="text-xs theme-text-secondary">
-            This will save your conversation for review in the verification panel.
+            将保存本次对话，供你在验证面板中回看分析。
           </p>
           <p className="text-xs theme-text-tertiary">
-            You'll have the option to generate TTS audio in the next step.
+            下一步可选择是否生成语音；没有语音密钥时可跳过。
           </p>
           <div className="flex gap-2 mt-2">
             <button
               onClick={onExport}
               className="px-3 py-1.5 theme-bg-accent hover:theme-bg-accent-hover theme-text-inverse rounded text-xs font-medium transition-colors"
             >
-              Export
+              导出
             </button>
             <button
               onClick={onDeclineExport}
               className="px-3 py-1.5 theme-bg-tertiary hover:theme-bg-hover theme-text-primary rounded text-xs font-medium transition-colors"
             >
-              Cancel
+              取消
             </button>
           </div>
         </div>
@@ -901,10 +877,6 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
         throw new Error('Failed to update conversation mode');
       }
 
-      // If switching to autonomous mode, automatically approve any pending impromptu phases
-      if (newMode === 'autonomous' && messages.some(m => m.needsApproval)) {
-        onApproveImpromptu?.(messages.find(m => m.needsApproval)!);
-      }
     } catch (error) {
       console.error('Error changing conversation mode:', error);
       // Revert to previous mode on error
@@ -937,8 +909,6 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
     try {
       setRegeneratingMessage(true);
       await onRegenerateImpromptuWithMode(mode);
-    } catch (error) {
-      console.error('Error regenerating message with mode:', mode, error);
     } finally {
       setRegeneratingMessage(false);
     }
@@ -953,12 +923,17 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
           onChange={handleModeChange}
           className="theme-bg-tertiary theme-text-primary p-1 rounded text-sm"
         >
-          <option value="human-control">Human Control</option>
-          <option value="autonomous">Autonomous</option>
-          <option value="reactive">Reactive</option>
+          <option value="human-control">人工控制</option>
+          <option value="autonomous">自主模式</option>
+          <option value="reactive">被动响应</option>
         </select>
       </div>
 
+      {conversationMode === 'human-control' && (
+        <p className="px-2 py-1 text-xs theme-text-secondary" role="status">
+          普通 AI 发言自动进行；出现候选介入时会暂停，等待你审核。
+        </p>
+      )}
       {/* Content area */}
       <div className={`overflow-y-auto p-4 ${
         conversationMode === 'human-control' && messages.some(m => m.needsApproval && m.isDerailing)
@@ -1001,7 +976,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
         ) : (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
-              <p className="text-gray-500">No conversation running. Select a mode above to begin.</p>
+              <p className="text-gray-500">暂无对话。请选择模式，再点击片段播放按钮或“全部播放”开始。</p>
             </div>
           </div>
         )}

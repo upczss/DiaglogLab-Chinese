@@ -4,7 +4,7 @@ const SceneViewer = ({ currentScene }) => {
   const sceneContainerRef = useRef(null);
 
   if (!currentScene) {
-    return <div className="text-center p-4 text-gray-400">No scene selected</div>;
+    return <div className="text-center p-4 text-gray-400">尚未选择场景</div>;
   }
   
   const backgroundStyle = currentScene.backgroundImage ? {
@@ -74,7 +74,7 @@ const SceneViewer = ({ currentScene }) => {
                           key={`element-${eIndex}`}
                           className="text-xs text-white bg-black bg-opacity-30 p-1 rounded mb-1"
                         >
-                          Avatar: {element.avatarData.name}
+                          角色： {element.avatarData.name}
                         </div>
                       );
                     } else if (element.elementType === 'content' && element.content) {
@@ -96,7 +96,7 @@ const SceneViewer = ({ currentScene }) => {
               {!elements && avatarData && (
                 <div className="w-full h-full p-2 flex items-center justify-center">
                   <span className="text-xs text-white bg-black bg-opacity-50 px-2 py-1 rounded">
-                    Avatar: {avatarData.name}
+                    角色： {avatarData.name}
                   </span>
                 </div>
               )}
@@ -106,9 +106,9 @@ const SceneViewer = ({ currentScene }) => {
       </div>
       
       <div className="mt-4 text-sm text-gray-300">
-        <p>Scene ID: {currentScene.id}</p>
-        <p>Total boxes: {currentScene.boxes?.length || 0}</p>
-        <p>Click the Edit button above to modify this scene</p>
+        <p>场景编号： {currentScene.id}</p>
+        <p>容器总数： {currentScene.boxes?.length || 0}</p>
+        <p>点击上方“编辑场景”修改此场景</p>
       </div>
     </div>
   );

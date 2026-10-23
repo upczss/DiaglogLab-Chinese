@@ -1,3 +1,4 @@
+import { authoringLabel } from '../../libs/authoringChinese';
 import React, { useState, useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
 import { SnippetNode } from "../inspector/store";
@@ -155,17 +156,17 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
 
   // Turn mode options
   const turnModeOptions: DropdownOption[] = [
-    { value: 'free', label: 'Free' },
-    { value: 'round-robin', label: 'Round Robin' },
-    { value: 'moderated', label: 'Moderated' }
+    { value: 'free', label: "自由讨论" },
+    { value: 'round-robin', label: "轮流发言" },
+    { value: 'moderated', label: "主持模式" }
   ];
 
   // Pattern options
   const patternOptions: DropdownOption[] = [
-    { value: 'conversation', label: 'Conversation' },
-    { value: 'debate', label: 'Debate' },
-    { value: 'qa', label: 'Q&A' },
-    { value: 'story', label: 'Story' }
+    { value: 'conversation', label: "对话" },
+    { value: 'debate', label: "辩论" },
+    { value: 'qa', label: "问答" },
+    { value: 'story', label: "故事" }
   ];
   
   // Turns options
@@ -528,7 +529,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
-            Duplicate
+            复制片段
           </li>
           
           {/* Only show Edit Description option if there's an attached scene */}
@@ -540,7 +541,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
-              Edit Description
+              编辑说明
             </li>
           )}
           
@@ -551,7 +552,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
-            Delete
+            删除
           </li>
         </ul>
       </div>,
@@ -643,7 +644,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
           updatedNode.attachedScene = { 
             boxes: [], 
             id: `scene_${Date.now()}`,
-            name: "New Scene",
+            name: "新场景",
             hasUnsavedChanges: false,
             backgroundImage: null,
             globalPartySettings: { 
@@ -673,7 +674,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
           updatedNode.attachedScene = { 
             boxes: [], 
             id: `scene_${Date.now()}`,
-            name: "New Scene",
+            name: "新场景",
             hasUnsavedChanges: false,
             backgroundImage: null,
             globalPartySettings: { 
@@ -734,42 +735,42 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
     switch (dropdownType) {
       case 'turnMode':
         options = turnModeOptions;
-        title = 'Turn Mode';
+        title = "轮次规则";
         break;
       case 'moderator':
         // Get parties from the scene as options
         options = sceneParties.map(party => ({ value: party, label: party }));
         if (options.length === 0) {
-          options = [{ value: '', label: 'No parties available' }];
+          options = [{ value: '', label: "暂无群组" }];
         }
-        title = 'Moderator Party';
+        title = "主持群组";
         break;
       case 'initiator':
         // Get avatars from the scene as options
         options = sceneAvatarNames.map(name => ({ value: name, label: name }));
         if (options.length === 0) {
-          options = [{ value: '', label: 'No avatars available' }];
+          options = [{ value: '', label: "暂无角色" }];
         }
-        title = 'Initiator';
+        title = "发起者";
         break;
       case 'subTopic':
         // Example subtopics - these would normally come from a global list
         options = [
-          { value: 'introduction', label: 'Introduction' },
-          { value: 'main', label: 'Main Topic' },
-          { value: 'conclusion', label: 'Conclusion' },
-          { value: 'qa', label: 'Q&A' },
-          { value: 'custom', label: 'Custom' }
+          { value: 'introduction', label: "开场介绍" },
+          { value: 'main', label: "主题讨论" },
+          { value: 'conclusion', label: "总结" },
+          { value: 'qa', label: "问答" },
+          { value: 'custom', label: "自定义" }
         ];
-        title = 'Sub Topic';
+        title = "片段主题";
         break;
       case 'turns':
         options = turnsOptions;
-        title = 'Turns';
+        title = "发言轮数";
         break;
       case 'pattern':
         options = patternOptions;
-        title = 'Pattern';
+        title = "互动风格";
         break;
     }
     
@@ -914,7 +915,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
     
     // Create title
     const title = document.createElement('h3');
-    title.textContent = 'Edit Scene Description';
+    title.textContent = "编辑场景说明";
     title.style.fontSize = '16px';
     title.style.fontWeight = '600';
     title.style.marginBottom = '12px';
@@ -932,7 +933,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
     textarea.style.marginBottom = '16px';
     textarea.style.fontSize = '14px';
     textarea.style.color = 'var(--text-primary, #333333)';
-    textarea.placeholder = 'Enter a description for this scene...';
+    textarea.placeholder = "请输入场景说明…";
     
     // Create buttons container
     const buttonsContainer = document.createElement('div');
@@ -942,7 +943,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
     
     // Create cancel button
     const cancelButton = document.createElement('button');
-    cancelButton.textContent = 'Cancel';
+    cancelButton.textContent = "取消";
     cancelButton.style.padding = '6px 12px';
     cancelButton.style.borderRadius = '4px';
     cancelButton.style.border = '1px solid var(--border-color, #e2e8f0)';
@@ -952,7 +953,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
     
     // Create save button
     const saveButton = document.createElement('button');
-    saveButton.textContent = 'Save';
+    saveButton.textContent = "保存";
     saveButton.style.padding = '6px 12px';
     saveButton.style.borderRadius = '4px';
     saveButton.style.border = 'none';
@@ -1134,7 +1135,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
           }}
           style={{ pointerEvents: "none" }}
         >
-          {node.title || `Snippet ${nodes.filter((n: SnippetNode) => n.type === 'snippet').findIndex((n: SnippetNode) => n.id === node.id) + 1}`}
+          {node.title || `片段 ${nodes.filter((n: SnippetNode) => n.type === 'snippet').findIndex((n: SnippetNode) => n.id === node.id) + 1}`}
         </text>
       </g>
 
@@ -1198,7 +1199,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
             >
               {node.attachedScene.name && node.attachedScene.name.length > 20 
                 ? node.attachedScene.name.substring(0, 18) + "..." 
-                : node.attachedScene.name || "Unnamed Scene"}
+                : node.attachedScene.name || "未命名场景"}
             </text>
             
             {/* Scene Description Tooltip - displayed above the node when hovering the scene name */}
@@ -1312,7 +1313,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
                 transition: "fill 0.2s ease"
               }}
             >
-              No scene attached
+              尚未关联场景
             </text>
           </g>
         )}
@@ -1489,7 +1490,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
                                   stroke="#ffffff"
                                   strokeWidth="0.8"
                                 >
-                                  <title>Human Participant</title>
+                                  <title>人类参与者</title>
                                 </circle>
                               )}
                               {boxWidth > 20 && (
@@ -1538,7 +1539,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
                                 stroke="#ffffff"
                                 strokeWidth="0.8"
                               >
-                                <title>Contains Human Participant(s)</title>
+                                <title>包含人类参与者</title>
                               </circle>
                             )}
                           </g>
@@ -1569,7 +1570,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
                               fill="white"
                               fontWeight="bold"
                             >
-                              Txt
+                              文本
                             </text>
                           </g>
                         ) : (
@@ -1592,7 +1593,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
                               fill="white"
                               fontWeight="bold"
                             >
-                              Txt
+                              文本
                             </text>
                           </g>
                         )}
@@ -1612,7 +1613,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
                   fontSize="12"
                   style={{ pointerEvents: "none" }}
                 >
-                  Empty Scene
+                  空场景
                 </text>
               )}
             </g>
@@ -1647,7 +1648,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
                     fill="white"
                     fontWeight="600"
                   >
-                    A: {formatNames(sceneAvatarNames)}
+                    角色：{formatNames(sceneAvatarNames)}
                   </text>
                 </g>
               )}
@@ -1674,7 +1675,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
                     fill="white"
                     fontWeight="600"
                   >
-                    P: {formatNames(sceneParties)}
+                    群组：{formatNames(sceneParties)}
                   </text>
                 </g>
               )}
@@ -1701,7 +1702,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
                     fill="white"
                     fontWeight="600"
                   >
-                    C: Content
+                    素材
                   </text>
                 </g>
               )}
@@ -1748,7 +1749,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
             onClick={togglePartyConfigExpanded}
             style={{ pointerEvents: "none" }}
           >
-            Party Settings {partyConfigExpanded ? "−" : "+"}
+            群组设置 {partyConfigExpanded ? "−" : "+"}
           </text>
         </g>
 
@@ -1757,7 +1758,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
           <>
             {/* Turn Mode Dropdown - READ-ONLY */}
             <text x={node.x + 10} y={partyConfigY + 20} className="node-info text-xs font-medium" style={{ pointerEvents: "none" }}>
-              Turn Mode
+              轮次规则
             </text>
             <g className="dropdown-container-readonly" style={{ opacity: 0.9, cursor: "default" }}>
               <rect
@@ -1778,7 +1779,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
                 fill="var(--text-primary)"
                 style={{ pointerEvents: "none" }}
               >
-                {node.attachedScene?.globalPartySettings?.partyTurnMode || "free"}
+                {authoringLabel(node.attachedScene?.globalPartySettings?.partyTurnMode || "free")}
               </text>
             </g>
 
@@ -1786,7 +1787,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
             {(node.attachedScene?.globalPartySettings?.partyTurnMode !== "free") && (
               <>
                 <text x={node.x + 10} y={partyConfigY + 45} className="node-info text-xs font-medium" style={{ pointerEvents: "none" }}>
-                  Moderator
+                  主持人
                 </text>
                 <g 
                   className={`dropdown-container ${activeDropdown === 'moderator' ? 'active' : ''}`}
@@ -1860,7 +1861,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
             onClick={toggleConfigExpanded}
             style={{ pointerEvents: "none" }}
           >
-            Snippet Configs {configExpanded ? "−" : "+"}
+            片段配置 {configExpanded ? "−" : "+"}
           </text>
         </g>
 
@@ -1869,7 +1870,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
           <>
             {/* Initiator Value Display - READ-ONLY */}
             <text x={node.x + 10} y={configY + 20} className="node-info text-xs font-medium" style={{ pointerEvents: "none" }}>
-              Initiator
+              发起者
             </text>
             <g className="dropdown-container-readonly" style={{ opacity: 0.9, cursor: "default" }}>
               <rect
@@ -1900,7 +1901,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
 
             {/* SubTopic Value Display - READ-ONLY */}
             <text x={node.x + 10} y={configY + 45} className="node-info text-xs font-medium" style={{ pointerEvents: "none" }}>
-              SubTopic
+              片段主题
             </text>
             <g className="dropdown-container-readonly" style={{ opacity: 0.9, cursor: "default" }}>
               <rect
@@ -1931,7 +1932,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
 
             {/* Turns Value Display - READ-ONLY */}
             <text x={node.x + 10} y={configY + 70} className="node-info text-xs font-medium" style={{ pointerEvents: "none" }}>
-              Turns
+              轮数
             </text>
             <g className="dropdown-container-readonly" style={{ opacity: 0.9, cursor: "default" }}>
               <rect
@@ -1958,7 +1959,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
             
             {/* Pattern Value Display - READ-ONLY */}
             <text x={node.x + 10} y={configY + 95} className="node-info text-xs font-medium" style={{ pointerEvents: "none" }}>
-              Pattern
+              互动风格
             </text>
             <g className="dropdown-container-readonly" style={{ opacity: 0.9, cursor: "default" }}>
               <rect
@@ -1979,11 +1980,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
                 fill="var(--text-primary)"
                 style={{ pointerEvents: "none" }}
               >
-                {node.interactionPattern 
-                  ? (node.interactionPattern.length > 12
-                    ? node.interactionPattern.substring(0, 10) + ".."
-                    : node.interactionPattern)
-                  : "—"}
+                {node.interactionPattern ? authoringLabel(node.interactionPattern) : "—"}
               </text>
             </g>
           </>
@@ -2065,7 +2062,7 @@ const NodeDisplay: React.FC<NodeDisplayProps> = ({
                 fill="none"
               />
             )}
-            <title>Derailer Mode {derailerMode ? 'On' : 'Off'}</title>
+            <title>临时介入 {derailerMode ? "开启" : "关闭"}</title>
           </g>
         ) : null}
         

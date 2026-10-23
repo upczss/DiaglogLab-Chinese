@@ -1,3 +1,4 @@
+import { chineseDialoguePrompt } from './dialogueLanguage.js';
 import * as llmProvider from "./providers/llmProvider.js";
 
 /**
@@ -37,7 +38,7 @@ export async function generateBackchannel(message, vibe, agent) {
   if (!agent || agent.isHumanProxy) {
     const examples = exampleText.split(", ");
     const randomExample = examples[Math.floor(Math.random() * examples.length)];
-    return `${agent ? agent.name : "They"} is ${randomExample}`;
+    return `${agent ? agent.name : "参与者"}点头回应。`;
   }
   
   // Generate custom non-verbal backchannel based on vibe
@@ -45,16 +46,16 @@ export async function generateBackchannel(message, vibe, agent) {
 
   Message: "${message}"
 
-  Generate a brief, non-verbal backchannel response in the format: "${agent.name} is [action]", where [action] is a short phrase describing your physical reaction.
+  请用简体中文描述一个简短的非语言反应，格式为“${agent.name}＋动作”，例如“${agent.name}点头表示赞同”。
   
   Examples of ${vibe} reactions might include: ${exampleText}
   
-  Make your reaction between 3-8 words, believable, and appropriate for your personality. Don't use dialog or quotes.`;
+  动作描述保持简短、自然，符合角色性格，不要添加对白或引号。`;
   
   try {
-    const messages = [{ role: "user", content: prompt }];
+    const messages = [{ role: "user", content: chineseDialoguePrompt(`${prompt}\n仅用中文描述动作，例如：${agent.name}点头表示赞同。不要使用英文的 is 结构。`) }];
     let backchannelText = await llmProvider.chatCompletion(messages, {
-      maxTokens: 20,
+      maxTokens: 60,
       temperature: 0.7
     });
     
@@ -63,7 +64,7 @@ export async function generateBackchannel(message, vibe, agent) {
     
     // If response doesn't start with the agent's name, fix the format
     if (!backchannelText.startsWith(agent.name)) {
-      backchannelText = `${agent.name} is ${backchannelText.replace(/^[^a-z]+is /i, '')}`;
+      backchannelText = `${agent.name}${backchannelText}`;
     }
     
     // Limit length
@@ -76,7 +77,7 @@ export async function generateBackchannel(message, vibe, agent) {
   } catch (error) {
     console.error("Error generating backchannel:", error);
     // Fallback to default
-    return `${agent.name} is ${exampleText.split(", ")[0]}`;
+    return `${agent.name}点头回应。`;
   }
 }
 

@@ -89,7 +89,7 @@ const ContentLibrary = ({ currentScene, fileInputId }) => {
       setContentFiles(allContentFiles);
     } catch (err) {
       console.error('Error loading content files:', err);
-      setError('Failed to load content files: ' + (err.message || 'Unknown error'));
+      setError("加载素材失败：" + (err.message || "未知错误"));
     } finally {
       setLoading(false);
     }
@@ -196,7 +196,7 @@ const ContentLibrary = ({ currentScene, fileInputId }) => {
       console.log('File upload process completed successfully.');
     } catch (error) {
       console.error('Error in upload process:', error);
-      setError(`Failed to upload files: ${error.message}`);
+      setError(`上传文件失败： ${error.message}`);
     } finally {
       setIsUploading(false);
     }
@@ -211,7 +211,7 @@ const ContentLibrary = ({ currentScene, fileInputId }) => {
   useEffect(() => {
     const fileCountElement = document.getElementById('content-file-count');
     if (fileCountElement) {
-      fileCountElement.textContent = `${contentFiles.length} files`;
+      fileCountElement.textContent = `${contentFiles.length} 个文件`;
     }
   }, [contentFiles.length]);
 
@@ -283,7 +283,7 @@ const ContentLibrary = ({ currentScene, fileInputId }) => {
       {isUploading && (
         <div className="flex items-center mb-2 pb-2 border-b border-gray-200">
           <div className="animate-spin rounded-full h-3 w-3 border-2 border-blue-500 border-t-transparent mr-1"></div>
-          <span className="text-xs text-blue-500">Uploading...</span>
+          <span className="text-xs text-blue-500">正在上传…</span>
         </div>
       )}
 
@@ -291,12 +291,12 @@ const ContentLibrary = ({ currentScene, fileInputId }) => {
         {loading ? (
           <div className="flex items-center justify-center py-4">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-            <span className="ml-2 text-sm theme-text-secondary">Loading content...</span>
+            <span className="ml-2 text-sm theme-text-secondary">正在加载素材…</span>
           </div>
         ) : error ? (
           <div className="text-sm text-red-500 p-2 rounded bg-red-50">{error}</div>
         ) : contentFiles.length === 0 ? (
-          <div className="text-sm theme-text-secondary italic p-2">No content files available</div>
+          <div className="text-sm theme-text-secondary italic p-2">暂无素材文件</div>
         ) : (
           contentFiles.map((content, index) => {
             const isImported = isContentImported(content.id);
@@ -337,7 +337,7 @@ const ContentLibrary = ({ currentScene, fileInputId }) => {
                         <button
                           onClick={(e) => handlePreviewContent(content, e)}
                           className="p-1 text-gray-400 hover:text-blue-500 rounded hover:bg-blue-50/70"
-                          title="Preview PDF"
+                          title="预览 PDF"
                         >
                           <Eye className="w-3 h-3" />
                         </button>
@@ -350,7 +350,7 @@ const ContentLibrary = ({ currentScene, fileInputId }) => {
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
                           className="p-1 text-gray-400 hover:text-blue-500 rounded hover:bg-blue-50"
-                          title="Open in new tab"
+                          title="在新标签页打开"
                         >
                           <ExternalLink className="w-3 h-3" />
                         </a>
@@ -363,13 +363,13 @@ const ContentLibrary = ({ currentScene, fileInputId }) => {
                             ? 'text-green-600 bg-green-50' 
                             : 'text-blue-500 bg-blue-50'
                         }`}>
-                          {content.isOnServer ? 'Server' : 'Local'}
+                          {content.isOnServer ? "服务器文件" : "本地文件"}
                         </span>
                       )}
                     </div>
                   </div>
                   <div className="flex items-center text-xs theme-text-secondary space-x-1">
-                    <span className="truncate">{content.metadata?.subject || 'Document'}</span>
+                    <span className="truncate">{content.metadata?.subject === "Document" ? "文档" : (content.metadata?.subject || "文档")}</span>
                     {content.metadata?.year && (
                       <>
                         <span>•</span>
